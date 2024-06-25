@@ -19,9 +19,4 @@ class CNNScript(Script, ABC):
 
         datamodule = MeteorologicalDataModule(service=self.service, dataset_cls=dataset_class, data_dir=data_dir)
 
-        if self.service.config['APP']['ENVIRONMENT'] == 'DEVELOPMENT':
-            datamodule.prepare_data()
-            datamodule.setup(stage='fit')
-            datamodule.train_dataset.__repr__()
-
         return datamodule

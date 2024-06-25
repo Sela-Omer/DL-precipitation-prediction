@@ -20,6 +20,9 @@ class Service(ABC):
         self.data_cache = convert_param_to_type(self.config['DATA']['CACHE'])
         self.val_ratio = convert_param_to_type(self.config['DATA']['VAL_RATIO'])
 
+        self.lookback_range = convert_param_to_type(self.config['DATA']['LOOKBACK_RANGE'])
+        self.forecast_range = convert_param_to_type(self.config['DATA']['FORECAST_RANGE'])
+
         self.memo = {}
 
     @property

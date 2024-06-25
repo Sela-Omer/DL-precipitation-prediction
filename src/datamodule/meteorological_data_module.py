@@ -1,6 +1,7 @@
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 
+from src.dataloader.stochastic_times_collate_fn import stochastic_times_collate_fn
 from src.helper.dataset_helper import split_dataset
 
 
@@ -16,6 +17,7 @@ class MeteorologicalDataModule(pl.LightningDataModule):
         self.val_ratio = service.val_ratio
         self.train_index_files = None
         self.val_index_files = None
+        self.collate_fn = stochastic_times_collate_fn(service.lookback_range, service.forecast_range)
 
     def prepare_data(self):
         # This will initialize and cache the index files if needed by the dataset
@@ -35,7 +37,7 @@ class MeteorologicalDataModule(pl.LightningDataModule):
             self.val_dataset = val_dataset
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn)
 
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, batch_size=self.batch_size)
+        return DataLoader(self.val_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn)

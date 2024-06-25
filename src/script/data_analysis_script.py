@@ -3,8 +3,10 @@ from typing import Tuple
 
 import lightning as pl
 import numpy as np
+import torch
 from torch import Tensor
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 from src.script.script import Script
 
@@ -17,65 +19,42 @@ class DataAnalysisScript(Script, ABC):
     def create_architecture(self, datamodule: pl.LightningDataModule):
         pass
 
-    def generate_stats_dataloader(self, audio_dataloader: DataLoader) -> Tuple[float, float, float, float]:
-        """
-        Generate statistics for the audio data in the dataloader.
-
-        This function iterates over the audio_dataloader, generating statistics for each batch of audio data.
-        The statistics consist of the mean and standard deviation of the audio data.
-
-        Args:
-            audio_dataloader (torch.utils.data.DataLoader): The dataloader containing audio data.
-
-        Returns:
-            Tuple[float, float, float, float]: A tuple containing the mean and standard deviation of the audio data for X and y respectively.
-        """
-
-        # Initialize lists to store the statistics for X and y
-        X_stats, y_stats = [], []
+    def generate_stats_dataloader(self, dataloader: DataLoader) -> Tuple[torch.Tensor, torch.Tensor]:
+        param_sum = None
+        param_sum_squared = None
+        count = 0
 
         # Iterate over the dataloader
-        for X, y in audio_dataloader:
-            # Generate statistics for X and y
-            # generate_stats_one_batch function is assumed to return a tuple (mean, std)
-            X_stats.append(self.generate_stats_one_batch(X))
-            y_stats.append(self.generate_stats_one_batch(y))
+        for X, y in tqdm(dataloader):
+            # Generate statistics for the current batch
+            param_sum_batch, param_sum_squared_batch, count_batch = self.generate_stats_one_batch(X)
 
-        # Convert the lists to numpy arrays and select the first two columns
-        # Assuming generate_stats_one_batch returns (mean, std, num_samples)
-        # We select only the mean and std for each batch
-        X_stats = np.array(X_stats)[:, :2]
-        y_stats = np.array(y_stats)[:, :2]
+            if param_sum is None:
+                param_sum = param_sum_batch
+                param_sum_squared = param_sum_squared_batch
+            else:
+                param_sum += param_sum_batch
+                param_sum_squared += param_sum_squared_batch
+            count += count_batch
 
-        # Calculate the mean of the statistics for X and y
-        X_mean, X_std = X_stats.mean(axis=0)
-        y_mean, y_std = y_stats.mean(axis=0)
+        mean = param_sum / count
+        std = np.sqrt((param_sum_squared / count) - (mean ** 2))
 
-        # Return the mean and standard deviation of the audio data for X and y respectively
-        return X_mean, X_std, y_mean, y_std
+        return mean, std
 
-    def generate_stats_one_batch(self, audio_batch: Tensor):
-        """
-        Generate statistics for a single batch of audio data.
+    def generate_stats_one_batch(self, X):
+        if len(X.shape) == 5:
+            # BATCH x PARAMS x TIMES x HEIGHT x WIDTH
+            param_sum = X.sum(axis=(0, 2, 3, 4))
+            param_sum_squared = (X ** 2).sum(axis=(0, 2, 3, 4))
+            return param_sum, param_sum_squared, X.shape[0] * X.shape[2] * X.shape[3] * X.shape[4]
+        elif len(X.shape) == 3:
+            # BATCH x PARAMS x TIMES
+            param_sum = X.sum(axis=(0, 2))
+            param_sum_squared = (X ** 2).sum(axis=(0, 2))
+            return param_sum, param_sum_squared, X.shape[0] * X.shape[2]
 
-        Args:
-            audio_batch (torch.Tensor): A tensor of shape (batch_size, channels, samples) containing audio data.
-
-        Returns:
-            Tuple[float, float, int]: A tuple containing the mean, standard deviation, and number of samples in the audio batch.
-        """
-        # Ensure that the audio batch has the expected shape
-        assert audio_batch.dim() == 3, "Audio batch must have shape (batch_size, channels, samples)"
-        assert audio_batch.size(1) == 1, "Audio batch must have one channel"
-
-        # Calculate the number of samples in the batch
-        num_samples = audio_batch.size(0) * audio_batch.size(2)
-
-        # Calculate the mean and standard deviation of the audio batch
-        mean, std = audio_batch.mean().item(), audio_batch.std().item()
-
-        # Return the mean, standard deviation, and number of samples in the audio batch
-        return mean, std, num_samples
+        raise NotImplementedError(f"generate_stats_one_batch not implemented for shape {X.shape}")
 
     def __call__(self):
         """
@@ -85,11 +64,16 @@ class DataAnalysisScript(Script, ABC):
         """
         # Create the data module
         datamodule = self.create_datamodule()
+        datamodule.prepare_data()
+        datamodule.setup(stage='fit')
+        print(datamodule.train_dataset.__repr__())
 
         train_dl = datamodule.train_dataloader()
 
-        # # Generate statistics for the audio data in the dataloader
-        # X_mean, X_std, y_mean, y_std = self.generate_stats_dataloader(train_dl)
-        #
-        # # Print the statistics
-        # print(f"X_mean={X_mean},X_std={X_std},y_mean={y_mean},y_std={y_std}")
+        # Generate statistics for the audio data in the dataloader
+        mean, std = self.generate_stats_dataloader(train_dl)
+
+        # Write the statistics
+        file_prefix = f'stats/{self.service.model_name}'
+        torch.save(mean, f'{file_prefix}-mean.pt')
+        torch.save(std, f'{file_prefix}-std.pt')
