@@ -15,6 +15,11 @@ class Service(ABC):
         self.cpu_workers = convert_param_to_type(self.config['APP']['CPU_WORKERS'])
         self.dataset_size_percent = convert_param_to_type(self.config['APP']['DATA_SUBSET_SIZE_PERCENT'])
 
+        self.data_parameters = convert_param_to_type(self.config['DATA']['PARAMETERS'])
+        self.data_years = convert_param_to_type(self.config['DATA']['YEARS'])
+        self.data_cache = convert_param_to_type(self.config['DATA']['CACHE'])
+        self.val_ratio = convert_param_to_type(self.config['DATA']['VAL_RATIO'])
+
         self.memo = {}
 
     @property

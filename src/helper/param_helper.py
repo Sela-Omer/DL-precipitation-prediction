@@ -1,7 +1,7 @@
-from typing import Union
+from typing import Union, List
 
 
-def convert_param_to_type(s: str) -> Union[int, float, str]:
+def convert_param_to_type(s: str) -> Union[List[Union[int, float, str]], int, float, str]:
     """
     Convert a string to an integer, float, or string.
 
@@ -24,4 +24,7 @@ def convert_param_to_type(s: str) -> Union[int, float, str]:
             return float(s)
         # If conversion to float fails, return the string as is
         except ValueError:
+            lst = s.split(',')
+            if len(lst) > 1:
+                return [s for s in lst]
             return s
