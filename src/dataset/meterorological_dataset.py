@@ -9,6 +9,14 @@ from torch.utils.data import Dataset
 
 
 class MeteorologicalDataset(Dataset):
+    """
+    A PyTorch Dataset for meteorological datasets.
+    :param data_dir: The directory containing the data files.
+    :param parameters: The parameters to load.
+    :param years: The years to load.
+    :param cache_dir: The directory to store the cache files.
+
+    """
     def __init__(self, data_dir, parameters, years, cache_dir='cache'):
         self.data_dir = data_dir
         self.parameters = parameters
@@ -22,10 +30,18 @@ class MeteorologicalDataset(Dataset):
         self.index_files = self._load_or_create_cache()
 
     def _generate_cache_filename(self):
+        """
+        Generate the cache filename.
+        :return:
+        """
         cache_key = f"{'_'.join(self.parameters)}_{'_'.join(self.years)}"
         return os.path.join(self.cache_dir, f"cache_{cache_key}.json")
 
     def _get_index_files(self):
+        """
+        Get the index files for the dataset.
+        :return: The index files for the dataset.
+        """
         index_files = []
         dropped_files_stats = {param: 0 for param in self.parameters}
 
@@ -59,6 +75,10 @@ class MeteorologicalDataset(Dataset):
         return index_files
 
     def _load_or_create_cache(self):
+        """
+        Load the cache file if it exists, otherwise create it.
+        :return: The index files for the dataset.
+        """
         if os.path.exists(self.cache_file):
             with open(self.cache_file, 'r') as f:
                 index_files = json.load(f)
@@ -69,6 +89,11 @@ class MeteorologicalDataset(Dataset):
         return index_files
 
     def _load_data(self, index_file):
+        """
+        Load the data for a specific index file.
+        :param index_file: The index file to load.
+        :return: The data for the given index file.
+        """
         data_list = []
         for param in self.parameters:
             param_parts = param.split('_')
@@ -83,15 +108,23 @@ class MeteorologicalDataset(Dataset):
         return data_list
 
     def set_index_files(self, index_files):
+        """
+        Set the index files for the dataset.
+        :param index_files: The index files to set.
+        :return:
+        """
         self.index_files = index_files
 
     def __len__(self):
         return len(self.index_files)
 
     def __repr__(self):
+        """
+        Get the string representation of the dataset.
+        :return: The string representation of the dataset.
+        """
         repr_str = f"MeteorologicalDataset(data_dir={self.data_dir}, parameters={self.parameters}, years={self.years}, cache_dir={self.cache_dir})\n"
         repr_str += f"Number of samples: {len(self)}\n"
-        repr_str += "Sample visualizations:\n"
 
         random_indices = random.sample(range(len(self)), min(3, len(self)))
 

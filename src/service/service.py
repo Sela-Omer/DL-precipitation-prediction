@@ -8,6 +8,11 @@ from src.helper.param_helper import convert_param_to_type
 
 
 class Service(ABC):
+    """
+    A class representing a service.
+    :arg config: The configuration file for the service.
+    
+    """
     def __init__(self, config):
         self.config = config
         self.model_name = f"{self.config['APP']['ARCH']}"

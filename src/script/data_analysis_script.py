@@ -8,10 +8,15 @@ from torch import Tensor
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+from src.helper.param_helper import convert_param_to_type
 from src.script.script import Script
 
 
 class DataAnalysisScript(Script, ABC):
+    """
+    A script for analyzing the data in a dataset.
+
+    """
 
     def create_trainer(self, callbacks: list):
         pass
@@ -20,6 +25,11 @@ class DataAnalysisScript(Script, ABC):
         pass
 
     def generate_stats_dataloader(self, dataloader: DataLoader) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Generate the mean and standard deviation of the data in the dataloader.
+        :param dataloader: The dataloader to analyze.
+        :return: The mean and standard deviation of each parameter in the data.
+        """
         param_sum = None
         param_sum_squared = None
         count = 0
@@ -68,12 +78,13 @@ class DataAnalysisScript(Script, ABC):
         datamodule.setup(stage='fit')
         print(datamodule.train_dataset.__repr__())
 
-        train_dl = datamodule.train_dataloader()
+        if self.service.config['DATA_ANALYSIS']['EXECUTE_MODEL_STATS_CALCULATION'] == 'True':
+            train_dl = datamodule.train_dataloader()
 
-        # Generate statistics for the audio data in the dataloader
-        mean, std = self.generate_stats_dataloader(train_dl)
+            # Generate statistics for the audio data in the dataloader
+            mean, std = self.generate_stats_dataloader(train_dl)
 
-        # Write the statistics
-        file_prefix = f'stats/{self.service.model_name}'
-        torch.save(mean, f'{file_prefix}-mean.pt')
-        torch.save(std, f'{file_prefix}-std.pt')
+            # Write the statistics
+            file_prefix = f'stats/{self.service.model_name}'
+            torch.save(mean, f'{file_prefix}-mean.pt')
+            torch.save(std, f'{file_prefix}-std.pt')

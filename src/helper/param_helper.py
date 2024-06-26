@@ -3,17 +3,9 @@ from typing import Union, List
 
 def convert_param_to_type(s: str) -> Union[List[Union[int, float, str]], int, float, str]:
     """
-    Convert a string to an integer, float, or string.
-
-    Args:
-        s (str): The input string to convert.
-
-    Returns:
-        Union[int, float, str]: The converted value.
-
-    Raises:
-        None
-
+    Convert a string to an integer, float, or list of integers, floats, or strings.
+    :param s: The string to convert.
+    :return: The converted value.
     """
     # Try to convert the string to an integer
     try:

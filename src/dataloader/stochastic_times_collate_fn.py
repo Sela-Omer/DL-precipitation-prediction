@@ -4,12 +4,25 @@ import torch
 
 
 class stochastic_times_collate_fn(Callable):
+    """
+    A callable class that generates samples for training a model with lookback and forecast ranges.
+    :arg lookback_range: The number of time steps to look back in the past.
+    :arg forecast_range: The number of time steps to forecast into the future.
+
+    """
     def __init__(self, lookback_range: int, forecast_range: int):
         super().__init__()
         self.lookback_range = lookback_range
         self.forecast_range = forecast_range
 
     def __call__(self, batch):
+        """
+        Generates samples for training a model with stochastic lookback and forecast ranges.
+        :param batch: A list of tensors, each representing a single sample.
+        :return: A tuple containing the input and output tensors.
+
+        """
+
         batch_size = len(batch)
         numel_in_shape = len(batch[0].shape)
 

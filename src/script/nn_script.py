@@ -8,11 +8,19 @@ from src.script.script import Script
 
 
 class NNScript(Script, ABC):
+    """
+    A script for training a neural network model on meteorological data.
+
+    """
 
     def create_architecture(self, datamodule: pl.LightningDataModule):
         pass
 
     def create_datamodule(self):
+        """
+        Create the data module for the script.
+        :return: The data module for the script.
+        """
         data_dir = self.service.config['DATA']['PATH']
         dataset_class = NN_MeteorologicalCenterPointDataset
 

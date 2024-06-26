@@ -7,12 +7,25 @@ from src.dataset.meterorological_dataset import MeteorologicalDataset
 
 class CNN_MeteorologicalDataset(MeteorologicalDataset):
     def __getitem__(self, idx):
+        """
+        Get the data for a specific index.
+        :param idx: The index of the data to get.
+        :return: The data for the given index.
+        """
         index_file = self.index_files[idx]
         data_list = self._load_data(index_file)
         concatenated_data = np.stack(data_list, axis=0)  # Shape: NUMBER_OF_PARAMETERS x TIMES x HEIGHT x WIDTH
         return torch.tensor(concatenated_data, dtype=torch.float32)
 
     def _plot_sample(self, fig, axes, data_tensor, grouped_params):
+        """
+        Plot a sample of the dataset.
+        :param fig: The figure to plot on.
+        :param axes: The axes to plot on.
+        :param data_tensor: The data tensor to plot.
+        :param grouped_params: The grouped parameters to plot.
+        :return:
+        """
         for i, (base_param, params) in enumerate(grouped_params.items()):
             for param in params:
                 param_idx = self.parameters.index(param)
