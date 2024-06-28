@@ -39,8 +39,13 @@ class FitScript(Script, ABC):
         # Create the device stats callback
         device_stats_callback = DeviceStatsMonitor()
 
+        lr_monitor_callback_lst = []
+        if self.service.config['FIT']['TUNE_LR'] == 'True':
+            # Create the learning rate monitor callback
+            lr_monitor_callback_lst.append(pl.pytorch.callbacks.LearningRateFinder())
+
         # Create the list of callbacks
-        return checkpoint_callback_lst + [progress_bar_callback, device_stats_callback]
+        return checkpoint_callback_lst + [progress_bar_callback, device_stats_callback] + lr_monitor_callback_lst
 
     def create_trainer(self, callbacks: list):
         """

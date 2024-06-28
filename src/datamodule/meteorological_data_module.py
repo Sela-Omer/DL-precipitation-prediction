@@ -68,3 +68,11 @@ class MeteorologicalDataModule(pl.LightningDataModule):
         """
         return DataLoader(self.val_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn,
                           num_workers=self.service.cpu_workers)
+
+    def test_dataloader(self):
+        """
+        Return the test dataloader.
+        :return:
+        """
+        return DataLoader(self.val_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn,
+                          num_workers=self.service.cpu_workers)

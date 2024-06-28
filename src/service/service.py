@@ -53,6 +53,14 @@ class Service(ABC):
             assert hasattr(tfm, 'tfm_name'), f"Transform {tfm} does not have a tfm_name attribute."
         self.tfms = [tfm for tfm in self.tfms if tfm.tfm_name in self.apply_tfms]
 
+    def add_tfm(self, tfm: Callable):
+        """
+        Adds a transform to the service.
+        :param tfm: The transform to add.
+        :return:
+        """
+        self.tfms.append(tfm)
+
     def apply_tfms_on_item(self, item):
         """
         Apply the transforms on the input item.
