@@ -1,4 +1,4 @@
-import pytorch_lightning as pl
+import lightning as pl
 from torch.utils.data import DataLoader
 
 from src.dataloader.all_times_collate_fn import all_times_collate_fn
@@ -16,6 +16,7 @@ class MeteorologicalDataModule(pl.LightningDataModule):
 
     def __init__(self, service, dataset_cls, data_dir):
         super().__init__()
+        self.service = service
         self.dataset_cls = dataset_cls
         self.data_dir = data_dir
         self.parameters = service.data_parameters
@@ -43,26 +44,25 @@ class MeteorologicalDataModule(pl.LightningDataModule):
         :return:
         """
         # Called on every GPU separately - set state which is made inside prepare_data
-        if stage == 'fit' or stage is None:
-            train_dataset = self.dataset_cls(self.data_dir, self.parameters, self.years, self.cache_dir)
-            val_dataset = self.dataset_cls(self.data_dir, self.parameters, self.years, self.cache_dir)
+        train_dataset = self.dataset_cls(self.data_dir, self.parameters, self.years, self.cache_dir)
+        val_dataset = self.dataset_cls(self.data_dir, self.parameters, self.years, self.cache_dir)
 
-            train_dataset.set_index_files(self.train_index_files)
-            val_dataset.set_index_files(self.val_index_files)
+        train_dataset.set_index_files(self.train_index_files)
+        val_dataset.set_index_files(self.val_index_files)
 
-            self.train_dataset = train_dataset
-            self.val_dataset = val_dataset
+        self.train_dataset = train_dataset
+        self.val_dataset = val_dataset
 
     def train_dataloader(self):
         """
         Return the training dataloader.
         :return:
         """
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn, num_workers=self.service.cpu_workers)
 
     def val_dataloader(self):
         """
         Return the validation dataloader.
         :return:
         """
-        return DataLoader(self.val_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn)
+        return DataLoader(self.val_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn, num_workers=self.service.cpu_workers)

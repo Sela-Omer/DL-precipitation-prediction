@@ -1,7 +1,7 @@
 from typing import Callable, Dict
 
 from src.script.data_analyisis_cnn_script import DataAnalysisCNNScript
-from src.script.data_analyisis_nn_script import DataAnalysisNNScript
+from src.script.data_analyisis_simple_nn_script import DataAnalysisSimpleNNScript
 from src.service.service import Service
 
 
@@ -17,7 +17,7 @@ class ServiceDataAnalysis(Service):
         """
         # Create a dictionary with the ARCH name and its corresponding instance
         script_dict = {
-            'REALTIME_PARAMETER_TO_INTENSITY_NN': DataAnalysisNNScript(self),
+            'SIMPLE_NN': DataAnalysisSimpleNNScript(self),
             'REALTIME_PARAMETER_TO_INTENSITY_CNN': DataAnalysisCNNScript(self),
         }
 

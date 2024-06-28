@@ -3,6 +3,7 @@ from typing import Callable, Dict
 import torch
 
 from src.helper.param_helper import convert_param_to_type
+from src.script.fit_simple_nn_script import FitSimpleNNScript
 from src.service.service import Service
 
 
@@ -52,7 +53,7 @@ class ServiceFit(Service):
         """
         # Create a dictionary with the ARCH name and its corresponding instance
         script_dict = {
-            'REALTIME_PARAMETER_TO_INTENSITY_NN': None,
+            'SIMPLE_NN': FitSimpleNNScript(self),
         }
 
         return script_dict

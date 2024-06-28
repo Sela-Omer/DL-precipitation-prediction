@@ -4,17 +4,20 @@ import lightning as pl
 
 from src.datamodule.meteorological_data_module import MeteorologicalDataModule
 from src.dataset.nn_meteorological_dataset import NN_MeteorologicalCenterPointDataset
+from src.module.simple_nn import SimpleNN
 from src.script.script import Script
 
 
-class NNScript(Script, ABC):
+class SimpleNNScript(Script, ABC):
     """
     A script for training a neural network model on meteorological data.
 
     """
 
     def create_architecture(self, datamodule: pl.LightningDataModule):
-        pass
+        example_input_array, _ = next(iter(datamodule.train_dataloader()))
+        model_hyperparams = self.service.model_hyperparams if hasattr(self.service, 'model_hyperparams') else {}
+        return SimpleNN(self.service, example_input_array=example_input_array, **model_hyperparams)
 
     def create_datamodule(self):
         """
@@ -25,5 +28,7 @@ class NNScript(Script, ABC):
         dataset_class = NN_MeteorologicalCenterPointDataset
 
         datamodule = MeteorologicalDataModule(service=self.service, dataset_cls=dataset_class, data_dir=data_dir)
+        datamodule.prepare_data()
+        datamodule.setup()
 
         return datamodule

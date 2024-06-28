@@ -26,7 +26,7 @@ class ServiceEval(Service):
         """
         # Create a dictionary with the ARCH name and its corresponding instance
         script_dict = {
-            'REALTIME_PARAMETER_TO_INTENSITY_NN': None,
+            'SIMPLE_NN': None,
         }
 
         return script_dict
