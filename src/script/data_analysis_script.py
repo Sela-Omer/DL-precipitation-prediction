@@ -76,7 +76,9 @@ class DataAnalysisScript(Script, ABC):
         datamodule = self.create_datamodule()
         datamodule.prepare_data()
         datamodule.setup(stage='fit')
-        print(datamodule.train_dataset.__repr__())
+
+        if self.service.environment == 'DEVELOPMENT':
+            print(datamodule.train_dataset.__repr__())
 
         if self.service.config['DATA_ANALYSIS']['EXECUTE_MODEL_STATS_CALCULATION'] == 'True':
             train_dl = datamodule.train_dataloader()

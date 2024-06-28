@@ -6,7 +6,7 @@ from src.dataset.meterorological_dataset import MeteorologicalDataset
 
 
 class CNN_MeteorologicalDataset(MeteorologicalDataset):
-    def __getitem__(self, idx):
+    def _get_item(self, idx):
         """
         Get the data for a specific index.
         :param idx: The index of the data to get.

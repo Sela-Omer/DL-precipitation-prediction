@@ -4,7 +4,8 @@ from typing import Callable, List, Dict
 import torch
 from lightning.pytorch.loggers import TensorBoardLogger
 
-from src.helper.param_helper import convert_param_to_type
+from src.helper.param_helper import convert_param_to_type, convert_param_to_list
+from src.transform.norm_tfm import NormalizeTfm
 
 
 class Service(ABC):
@@ -21,10 +22,12 @@ class Service(ABC):
         self.model_name = f"{self.config['APP']['ARCH']}-{override_config_filename}"
         self.batch_size = convert_param_to_type(self.config['APP']['BATCH_SIZE'])
         self.cpu_workers = convert_param_to_type(self.config['APP']['CPU_WORKERS'])
+        self.environment = convert_param_to_type(self.config['APP']['ENVIRONMENT'])
 
-        self.data_parameters = convert_param_to_type(self.config['DATA']['PARAMETERS'])
-        self.target_parameters = convert_param_to_type(self.config['DATA']['TARGET_PARAMETERS'])
-        self.input_parameters = convert_param_to_type(self.config['DATA']['INPUT_PARAMETERS'])
+        self.data_parameters = convert_param_to_list(self.config['DATA']['PARAMETERS'])
+        self.norm_parameters = convert_param_to_list(self.config['DATA']['NORM_PARAMETERS'])
+        self.target_parameters = convert_param_to_list(self.config['DATA']['TARGET_PARAMETERS'])
+        self.input_parameters = convert_param_to_list(self.config['DATA']['INPUT_PARAMETERS'])
 
         if len(self.target_parameters) > 0 and self.target_parameters[-1] == '':
             self.target_parameters = self.target_parameters[:-1]
@@ -41,8 +44,24 @@ class Service(ABC):
         self.forecast_range = convert_param_to_type(self.config['DATA']['FORECAST_RANGE'])
 
         self.network_depth = convert_param_to_type(self.config['APP']['NETWORK_DEPTH'])
+        self.apply_tfms = convert_param_to_list(self.config['DATA']['APPLY_TFMS'])
 
         self.memo = {}
+        self.tfms = [NormalizeTfm(self)]
+        for tfm in self.tfms:
+            assert isinstance(tfm, Callable), f"Transform {tfm} is not callable."
+            assert hasattr(tfm, 'tfm_name'), f"Transform {tfm} does not have a tfm_name attribute."
+        self.tfms = [tfm for tfm in self.tfms if tfm.tfm_name in self.apply_tfms]
+
+    def apply_tfms_on_item(self, item):
+        """
+        Apply the transforms on the input item.
+        :param item: The input item.
+        :return: The transformed item.
+        """
+        for tfm in self.tfms:
+            item = tfm(item)
+        return item
 
     def set_parameter_index(self, parameter: str, index: int):
         """

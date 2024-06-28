@@ -1,14 +1,17 @@
 import json
 import os
 import random
+from abc import abstractmethod, ABC
 from collections import defaultdict
 
 import numpy as np
 from matplotlib import pyplot as plt
 from torch.utils.data import Dataset
 
+from src.service.service import Service
 
-class MeteorologicalDataset(Dataset):
+
+class MeteorologicalDataset(ABC, Dataset):
     """
     A PyTorch Dataset for meteorological datasets.
     :param data_dir: The directory containing the data files.
@@ -17,7 +20,9 @@ class MeteorologicalDataset(Dataset):
     :param cache_dir: The directory to store the cache files.
 
     """
-    def __init__(self, data_dir, parameters, years, cache_dir='cache'):
+
+    def __init__(self, service: Service, data_dir, parameters, years, cache_dir='cache'):
+        self.service = service
         self.data_dir = data_dir
         self.parameters = parameters
         self.years = years
@@ -59,11 +64,9 @@ class MeteorologicalDataset(Dataset):
                             else:
                                 file_path = os.path.join(self.data_dir, param, year, filename)
 
-
                             if not os.path.exists(file_path):
                                 all_params_exist = False
                                 dropped_files_stats[param] += 1
-
 
                         if all_params_exist:
                             index_files.append(filename)
@@ -143,6 +146,32 @@ class MeteorologicalDataset(Dataset):
 
         return repr_str
 
-    def _plot_sample(self, fig, axes, data_tensor, grouped_params):
-        raise NotImplementedError("This method should be implemented by subclasses.")
+    def __getitem__(self, idx):
+        """
+        Get the data for a specific index.
+        :param idx: The index of the data to get.
+        :return: The data for the given index.
+        """
+        item = self._get_item(idx)
+        return self.service.apply_tfms_on_item(item)
 
+    @abstractmethod
+    def _get_item(self, idx):
+        """
+        Get the data for a specific index.
+        :param idx: The index of the data to get.
+        :return:
+        """
+        pass
+
+    @abstractmethod
+    def _plot_sample(self, fig, axes, data_tensor, grouped_params):
+        """
+        Plot a sample of the dataset.
+        :param fig:
+        :param axes:
+        :param data_tensor:
+        :param grouped_params:
+        :return:
+        """
+        pass

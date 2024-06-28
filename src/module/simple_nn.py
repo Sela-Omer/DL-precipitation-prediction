@@ -23,7 +23,7 @@ class SimpleNN(pl.LightningModule):
 
         self.lookback_range = service.lookback_range
 
-        assert self.lookback_range == 0, "The lookback range must be 0 for the SimpleNN model. As there is no temporal component in the architecture."
+        # assert self.lookback_range == 0, "The lookback range must be 0 for the SimpleNN model. As there is no temporal component in the architecture."
 
         self.data_parameters = service.data_parameters
         self.target_parameters = service.target_parameters
@@ -36,7 +36,8 @@ class SimpleNN(pl.LightningModule):
         self.network_depth = service.network_depth
 
         layer_lst = []
-        layer_planes = [len(self.input_parameters) * (2 ** i) for i in range(self.network_depth)]
+        layer_planes = [len(self.input_parameters) * (self.lookback_range + 1) * (2 ** i) for i in
+                        range(self.network_depth)]
         for i in range(self.network_depth - 1):
             layer_lst.append(self._make_layer(layer_planes[i], layer_planes[i + 1]))
         last_lin = nn.Linear(layer_planes[-1], len(self.target_parameters))
@@ -61,9 +62,8 @@ class SimpleNN(pl.LightningModule):
         :param x: The input data.
         :return: The output of the model.
         """
-        x = x.squeeze(-1)
-        assert len(x.shape) == 2, f"The input data must be 2D after squeeze of time dim. instead got shape: {x.shape}"
         x = torch.index_select(x, 1, torch.tensor(self.input_parameter_indices).to(x.device))
+        x = x.reshape(x.shape[0], -1)
         return self.layers(x)
 
     def _generic_step(self, batch, step_name: str) -> STEP_OUTPUT:
@@ -74,13 +74,14 @@ class SimpleNN(pl.LightningModule):
         :return: The loss for the batch.
         """
         X, y = batch
-        X = X.squeeze(-1)
-        y = y.squeeze(-1)
-        assert len(y.shape) == 2, f"The target data must be 2D after squeeze of time dim. instead got shape: {y.shape}"
-        assert len(X.shape) == 2, f"The input data must be 2D after squeeze of time dim. instead got shape: {X.shape}"
 
         X = torch.index_select(X, 1, torch.tensor(self.input_parameter_indices).to(X.device))
         y = torch.index_select(y, 1, torch.tensor(self.target_parameter_indices).to(y.device))
+
+        X = X.reshape(X.shape[0], -1)
+        y = y.squeeze(-1)
+        assert len(y.shape) == 2, f"The target data must be 2D after squeeze of time dim. instead got shape: {y.shape}"
+
         y_hat = self.layers(X)
 
         loss = nn.functional.mse_loss(y_hat, y)
