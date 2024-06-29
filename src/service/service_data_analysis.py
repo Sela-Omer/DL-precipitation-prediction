@@ -7,6 +7,19 @@ from src.service.service import Service
 
 
 class ServiceDataAnalysis(Service):
+    def __init__(self, *arg, **kwargs):
+        """
+        Initializes a new instance of the ServiceDataAnalysis class.
+
+        Args:
+            config (dict): A dictionary containing the configuration settings for the service.
+
+        Returns:
+            None
+        """
+        super().__init__(*arg, **kwargs)
+        self.tfms = [tfm for tfm in self.tfms if tfm.tfm_name != 'normalize']
+
 
     @property
     def scripts(self) -> Dict[str, Callable]:

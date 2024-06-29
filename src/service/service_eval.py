@@ -1,5 +1,6 @@
 from typing import Callable, Dict
 
+from src.script.eval_residual_nn_script import EvalResidualNNScript
 from src.script.eval_simple_nn_script import EvalSimpleNNScript
 from src.service.service import Service
 
@@ -29,6 +30,7 @@ class ServiceEval(Service):
         # Create a dictionary with the ARCH name and its corresponding instance
         script_dict = {
             'SIMPLE_NN': EvalSimpleNNScript(self),
+            'RESIDUAL_NN': EvalResidualNNScript(self),
         }
 
         return script_dict

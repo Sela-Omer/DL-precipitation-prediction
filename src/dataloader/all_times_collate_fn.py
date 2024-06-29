@@ -29,6 +29,8 @@ class all_times_collate_fn(Callable):
         for item in batch:
             times = item.shape[1]
             for t in range(self.lookback_range, times - self.forecast_range):
+                if t - self.lookback_range < 0 or t + 1 >= times or t + self.forecast_range >= times:
+                    continue
                 X = item[:, t - self.lookback_range:t + 1]
                 y = item[:, t + self.forecast_range][:, None]
                 X_list.append(X)
