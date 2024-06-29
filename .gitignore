@@ -1,5 +1,5 @@
 mock_data/
 cache/
-**.ckpt
-**events.out.tfevents.*
+*.ckpt
+*events.out.tfevents.*
 **__pycache__
