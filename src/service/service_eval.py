@@ -1,5 +1,6 @@
 from typing import Callable, Dict
 
+from src.script.eval_naive_module_script import EvalNaiveModuleScript
 from src.script.eval_residual_nn_script import EvalResidualNNScript
 from src.script.eval_simple_nn_script import EvalSimpleNNScript
 from src.service.service import Service
@@ -31,6 +32,7 @@ class ServiceEval(Service):
         script_dict = {
             'SIMPLE_NN': EvalSimpleNNScript(self),
             'RESIDUAL_NN': EvalResidualNNScript(self),
+            'NAIVE_MODULE': EvalNaiveModuleScript(self),
         }
 
         return script_dict
