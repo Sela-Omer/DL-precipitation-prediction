@@ -29,7 +29,7 @@ class NN_MeteorologicalCenterPointDataset(MeteorologicalDataset):
         """
         for i, (base_param, params) in enumerate(grouped_params.items()):
             for param in params:
-                param_idx = self.parameters.index(param)
+                param_idx = self.service.data_parameters.index(param)
                 param_data = data_tensor[param_idx].numpy()
 
                 if len(param_data.shape) == 1:  # Shape: TIMES

@@ -28,7 +28,7 @@ class CNN_MeteorologicalDataset(MeteorologicalDataset):
         """
         for i, (base_param, params) in enumerate(grouped_params.items()):
             for param in params:
-                param_idx = self.parameters.index(param)
+                param_idx = self.service.data_parameters.index(param)
                 param_data = data_tensor[param_idx].numpy()
 
                 if len(param_data.shape) == 3:  # Shape: TIMES x HEIGHT x WIDTH
@@ -65,7 +65,7 @@ class CNN_MeteorologicalDataset(MeteorologicalDataset):
         for i, (base_param, params) in enumerate(grouped_params.items()):
             for t in range(min(5, data_tensor.shape[1])):  # Plot up to 5 time steps
                 for j, param in enumerate(params):
-                    param_idx = self.parameters.index(param)
+                    param_idx = self.service.data_parameters.index(param)
                     param_data = data_tensor[param_idx].numpy()
 
                     if len(param_data.shape) == 3:  # Shape: TIMES x HEIGHT x WIDTH

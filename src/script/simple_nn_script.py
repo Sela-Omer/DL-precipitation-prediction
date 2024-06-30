@@ -6,6 +6,7 @@ from src.datamodule.meteorological_data_module import MeteorologicalDataModule
 from src.dataset.nn_meteorological_dataset import NN_MeteorologicalCenterPointDataset
 from src.module.simple_nn import SimpleNN
 from src.script.script import Script
+from torchsummary import summary
 
 
 class SimpleNNScript(Script, ABC):
@@ -17,7 +18,9 @@ class SimpleNNScript(Script, ABC):
     def create_architecture(self, datamodule: pl.LightningDataModule):
         example_input_array, _ = next(iter(datamodule.train_dataloader()))
         model_hyperparams = self.service.model_hyperparams if hasattr(self.service, 'model_hyperparams') else {}
-        return SimpleNN(self.service, example_input_array=example_input_array, **model_hyperparams)
+        model = SimpleNN(self.service, example_input_array=example_input_array, **model_hyperparams)
+        summary(model, input_size=example_input_array.shape[1:], device=str(model.device))
+        return model
 
     def create_datamodule(self):
         """

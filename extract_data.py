@@ -27,7 +27,6 @@ def extract_selected_years(archive_path, output_dir, selected_years):
 # Example usage
 archive_path = 'G:/precip_prediction_data/tensors2.tar.gz'
 output_dir = 'C:/projects/tensors2'
-selected_years = ['1990', '1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999', '2000', '2001',
-                  '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010']
+selected_years = [str(year) for year in list(range(1945, 1990)) + list(range(2010, 2025))]
 
 extract_selected_years(archive_path, output_dir, selected_years)

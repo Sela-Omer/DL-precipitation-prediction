@@ -39,12 +39,12 @@ class SimpleNN(pl.LightningModule):
         layer_planes = [len(self.input_parameters) * (self.lookback_range + 1) * (2 ** i) for i in
                         range(self.network_depth)]
         for i in range(self.network_depth - 1):
-            layer_lst.append(self._make_layer(layer_planes[i], layer_planes[i + 1]))
+            layer_lst.append(self._make_layer(layer_planes[i], layer_planes[i + 1], i))
         last_lin = nn.Linear(layer_planes[-1], len(self.target_parameters))
         layer_lst.append(last_lin)
         self.layers = nn.Sequential(*layer_lst)
 
-    def _make_layer(self, in_features, out_features):
+    def _make_layer(self, in_features, out_features, i):
         """
         Create a layer with a linear transformation followed by a ReLU activation function.
         :param in_features:

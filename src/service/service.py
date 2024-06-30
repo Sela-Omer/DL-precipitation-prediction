@@ -5,6 +5,7 @@ import torch
 from lightning.pytorch.loggers import TensorBoardLogger
 
 from src.helper.param_helper import convert_param_to_type, convert_param_to_list
+from src.transform.circular_unfold_tfm import CircularUnfoldTfm
 from src.transform.norm_tfm import NormalizeTfm
 
 
@@ -47,11 +48,14 @@ class Service(ABC):
         self.apply_tfms = convert_param_to_list(self.config['DATA']['APPLY_TFMS'])
 
         self.memo = {}
-        self.tfms = [NormalizeTfm(self)]
-        for tfm in self.tfms:
+        tfm_lst = [NormalizeTfm(self),
+                   CircularUnfoldTfm(self, 'date', 1, 366),
+                   CircularUnfoldTfm(self, 'lon', 0, 360),]
+        for tfm in tfm_lst:
             assert isinstance(tfm, Callable), f"Transform {tfm} is not callable."
             assert hasattr(tfm, 'tfm_name'), f"Transform {tfm} does not have a tfm_name attribute."
-        self.tfms = [tfm for tfm in self.tfms if tfm.tfm_name in self.apply_tfms]
+        tfm_dict = {tfm.tfm_name: tfm for tfm in tfm_lst}
+        self.tfms = [tfm_dict[tfm_name] for tfm_name in self.apply_tfms]
 
     def add_tfm(self, tfm: Callable):
         """
@@ -96,6 +100,14 @@ class Service(ABC):
         :return: The index of the parameter.
         """
         return self.data_parameters.index(parameter)
+
+    def remove_parameter_index(self, index: int):
+        """
+        Removes the parameter at the specified index.
+        :param index: The index to remove.
+        :return:
+        """
+        self.data_parameters.pop(index)
 
     @property
     @abstractmethod

@@ -19,7 +19,6 @@ class MeteorologicalDataModule(pl.LightningDataModule):
         self.service = service
         self.dataset_cls = dataset_cls
         self.data_dir = data_dir
-        self.parameters = service.data_parameters
         self.years = service.data_years
         self.batch_size = service.batch_size
         self.cache_dir = service.data_cache
@@ -34,7 +33,7 @@ class MeteorologicalDataModule(pl.LightningDataModule):
         :return:
         """
         # This will initialize and cache the index files if needed by the dataset
-        temp_dataset = self.dataset_cls(self.service, self.data_dir, self.parameters, self.years, self.cache_dir)
+        temp_dataset = self.dataset_cls(self.service, self.data_dir, self.years, self.cache_dir)
         self.train_index_files, self.val_index_files = split_dataset(temp_dataset.index_files, self.val_ratio)
 
     def setup(self, stage=None):
@@ -44,8 +43,8 @@ class MeteorologicalDataModule(pl.LightningDataModule):
         :return:
         """
         # Called on every GPU separately - set state which is made inside prepare_data
-        train_dataset = self.dataset_cls(self.service, self.data_dir, self.parameters, self.years, self.cache_dir)
-        val_dataset = self.dataset_cls(self.service, self.data_dir, self.parameters, self.years, self.cache_dir)
+        train_dataset = self.dataset_cls(self.service, self.data_dir, self.years, self.cache_dir)
+        val_dataset = self.dataset_cls(self.service, self.data_dir, self.years, self.cache_dir)
 
         train_dataset.set_index_files(self.train_index_files)
         val_dataset.set_index_files(self.val_index_files)

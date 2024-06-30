@@ -21,10 +21,9 @@ class MeteorologicalDataset(ABC, Dataset):
 
     """
 
-    def __init__(self, service: Service, data_dir, parameters, years, cache_dir='cache'):
+    def __init__(self, service: Service, data_dir, years, cache_dir='cache'):
         self.service = service
         self.data_dir = data_dir
-        self.parameters = parameters
         self.years = years
         self.cache_dir = cache_dir
         self.cache_file = self._generate_cache_filename()
@@ -39,7 +38,7 @@ class MeteorologicalDataset(ABC, Dataset):
         Generate the cache filename.
         :return:
         """
-        cache_key = f"{'_'.join(self.parameters)}_{'_'.join(self.years)}"
+        cache_key = f"{'_'.join(self.service.data_parameters)}_{'_'.join(self.years)}"
         return os.path.join(self.cache_dir, f"cache_{cache_key}.json")
 
     def _get_index_files(self):
@@ -48,15 +47,17 @@ class MeteorologicalDataset(ABC, Dataset):
         :return: The index files for the dataset.
         """
         index_files = []
-        dropped_files_stats = {param: 0 for param in self.parameters}
+        dropped_files_stats = {param: 0 for param in self.service.data_parameters}
 
         for year in self.years:
-            year_dir = os.path.join(self.data_dir, self.parameters[0].split('_')[0], str(year))
+            year_dir = os.path.join(self.data_dir, 'intensity', str(year))
             if os.path.exists(year_dir):
                 for filename in os.listdir(year_dir):
                     if filename.endswith('.npy'):
                         all_params_exist = True
-                        for param in self.parameters:
+                        for param in self.service.data_parameters:
+                            if "#" in param:
+                                param = param.split("#")[0]
                             param_parts = param.split('_')
                             if len(param_parts) > 1:
                                 file_path = os.path.join(self.data_dir, param_parts[0], param_parts[1], year,
@@ -98,7 +99,9 @@ class MeteorologicalDataset(ABC, Dataset):
         :return: The data for the given index file.
         """
         data_list = []
-        for param in self.parameters:
+        for param in self.service.data_parameters:
+            if "#" in param:
+                param = param.split("#")[0]
             param_parts = param.split('_')
             if len(param_parts) > 1:
                 file_path = os.path.join(self.data_dir, param_parts[0], param_parts[1], index_file.split('_')[1],
@@ -126,18 +129,17 @@ class MeteorologicalDataset(ABC, Dataset):
         Get the string representation of the dataset.
         :return: The string representation of the dataset.
         """
-        repr_str = f"MeteorologicalDataset(data_dir={self.data_dir}, parameters={self.parameters}, years={self.years}, cache_dir={self.cache_dir})\n"
+        repr_str = f"MeteorologicalDataset(data_dir={self.data_dir}, parameters={self.service.data_parameters}, years={self.years}, cache_dir={self.cache_dir})\n"
         repr_str += f"Number of samples: {len(self)}\n"
 
         random_indices = random.sample(range(len(self)), min(3, len(self)))
 
-        grouped_params = defaultdict(list)
-        for param in self.parameters:
-            base_param = param.split('_')[0]
-            grouped_params[base_param].append(param)
-
         for idx in random_indices:
             data_tensor = self[idx]
+            grouped_params = defaultdict(list)
+            for param in self.service.data_parameters:
+                base_param = param.split('_')[0]
+                grouped_params[base_param].append(param)
             num_rows = len(grouped_params)
             fig, axes = plt.subplots(num_rows, 2, figsize=(12, 4 * num_rows), gridspec_kw={'width_ratios': [3, 1]})
             fig.suptitle(f"Sample {idx}", fontsize=16)
