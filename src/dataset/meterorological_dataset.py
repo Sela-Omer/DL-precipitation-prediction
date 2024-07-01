@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import random
@@ -21,7 +22,7 @@ class MeteorologicalDataset(ABC, Dataset):
 
     """
 
-    def __init__(self, service: Service, data_dir, years, cache_dir='cache'):
+    def __init__(self, service: Service, data_dir, years, cache_dir='cache', num_of_random_samples_repr=3):
         self.service = service
         self.data_dir = data_dir
         self.years = years
@@ -32,6 +33,7 @@ class MeteorologicalDataset(ABC, Dataset):
         os.makedirs(self.cache_dir, exist_ok=True)
 
         self.index_files = self._load_or_create_cache()
+        self.num_of_random_samples_repr = num_of_random_samples_repr
 
     def _generate_cache_filename(self):
         """
@@ -39,7 +41,11 @@ class MeteorologicalDataset(ABC, Dataset):
         :return:
         """
         cache_key = f"{'_'.join(self.service.data_parameters)}_{'_'.join(self.years)}"
-        return os.path.join(self.cache_dir, f"cache_{cache_key}.json")
+
+        # Encode the cache key using MD5
+        md5_hash = hashlib.md5(cache_key.encode()).hexdigest()
+
+        return os.path.join(self.cache_dir, f"cache_{md5_hash}.json")
 
     def _get_index_files(self):
         """
@@ -132,7 +138,7 @@ class MeteorologicalDataset(ABC, Dataset):
         repr_str = f"MeteorologicalDataset(data_dir={self.data_dir}, parameters={self.service.data_parameters}, years={self.years}, cache_dir={self.cache_dir})\n"
         repr_str += f"Number of samples: {len(self)}\n"
 
-        random_indices = random.sample(range(len(self)), min(3, len(self)))
+        random_indices = random.sample(range(len(self)), min(self.num_of_random_samples_repr, len(self)))
 
         for idx in random_indices:
             data_tensor = self[idx]

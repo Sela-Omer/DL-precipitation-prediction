@@ -57,7 +57,7 @@ class MeteorologicalDataModule(pl.LightningDataModule):
         Return the training dataloader.
         :return:
         """
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn,
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn, shuffle=True,
                           num_workers=self.service.cpu_workers)
 
     def val_dataloader(self):
