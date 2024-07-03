@@ -1,5 +1,7 @@
 import argparse
 
+import torch
+
 from src.config.config import config
 from src.service.service_data_analysis import ServiceDataAnalysis
 from src.service.service_eval import ServiceEval
@@ -61,6 +63,11 @@ def override_config(config, args):
 
 
 if __name__ == "__main__":
+    gpus = torch.cuda.device_count()
+    gpu_names = [torch.cuda.get_device_name(i) for i in range(gpus)]
+    print(f"Number of GPUs: {gpus}")
+    print(f"GPU names: {gpu_names}")
+
     args = parse_arguments(config)
     override_config(config, args)
 
