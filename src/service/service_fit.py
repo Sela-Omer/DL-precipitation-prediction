@@ -5,6 +5,7 @@ import torch
 from src.helper.param_helper import convert_param_to_type
 from src.script.fit_naive_module_script import FitNaiveModuleScript
 from src.script.fit_residual_nn_script import FitResidualNNScript
+from src.script.fit_resnet_script import FitResNetScript
 from src.script.fit_simple_nn_script import FitSimpleNNScript
 from src.service.service import Service
 
@@ -58,6 +59,7 @@ class ServiceFit(Service):
             'SIMPLE_NN': FitSimpleNNScript(self),
             'RESIDUAL_NN': FitResidualNNScript(self),
             'NAIVE_MODULE': FitNaiveModuleScript(self),
+            'RESNET': FitResNetScript(self),
         }
 
         return script_dict

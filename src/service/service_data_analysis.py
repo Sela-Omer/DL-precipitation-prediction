@@ -1,6 +1,6 @@
 from typing import Callable, Dict
 
-from src.script.data_analyisis_cnn_script import DataAnalysisCNNScript
+from src.script.data_analyisis_resnet_script import DataAnalysisResnetScript
 from src.script.data_analyisis_residual_nn_script import DataAnalysisResidualNNScript
 from src.script.data_analyisis_simple_nn_script import DataAnalysisSimpleNNScript
 from src.service.service import Service
@@ -33,7 +33,7 @@ class ServiceDataAnalysis(Service):
         script_dict = {
             'SIMPLE_NN': DataAnalysisSimpleNNScript(self),
             'RESIDUAL_NN': DataAnalysisResidualNNScript(self),
-            'REALTIME_PARAMETER_TO_INTENSITY_CNN': DataAnalysisCNNScript(self),
+            'RESNET': DataAnalysisResnetScript(self),
         }
 
         return script_dict

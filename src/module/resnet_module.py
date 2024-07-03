@@ -4,13 +4,13 @@ import lightning as pl
 import torch
 from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn
+from torchvision.models import resnet34
 
 from src.service.service import Service
 
 
-class SimpleNN(pl.LightningModule):
+class ResNetModule(pl.LightningModule):
     """
-    A simple neural network model.
     :param service: A service object that contains the configuration parameters.
 
     """
@@ -23,8 +23,6 @@ class SimpleNN(pl.LightningModule):
 
         self.lookback_range = service.lookback_range
 
-        # assert self.lookback_range == 0, "The lookback range must be 0 for the SimpleNN model. As there is no temporal component in the architecture."
-
         self.data_parameters = service.data_parameters
         self.target_parameters = service.target_parameters
         self.input_parameters = service.input_parameters
@@ -33,28 +31,11 @@ class SimpleNN(pl.LightningModule):
         self.target_parameter_indices = [service.get_parameter_index(target_param) for target_param in
                                          self.target_parameters]
 
-        self.network_depth = service.network_depth
-
-        layer_lst = []
-        layer_planes = [len(self.input_parameters) * (self.lookback_range + 1) * (2 ** i) for i in
-                        range(self.network_depth)]
-        for i in range(self.network_depth - 1):
-            layer_lst.append(self._make_layer(layer_planes[i], layer_planes[i + 1], i))
-        last_lin = nn.Linear(layer_planes[-1], len(self.target_parameters))
-        layer_lst.append(last_lin)
-        self.layers = nn.Sequential(*layer_lst)
-
-    def _make_layer(self, in_features, out_features, i):
-        """
-        Create a layer with a linear transformation followed by a ReLU activation function.
-        :param in_features:
-        :param out_features:
-        :return:
-        """
-        return nn.Sequential(
-            nn.Linear(in_features, out_features),
-            nn.ReLU(),
-        )
+        in_channels = len(self.input_parameters) * (self.lookback_range + 1)
+        self.resnet34_model = resnet34(pretrained=False, num_classes=len(self.target_parameters))
+        conv_1_orig = self.resnet34_model.conv1
+        self.resnet34_model.conv1 = nn.Conv2d(in_channels, conv_1_orig.out_channels, kernel_size=conv_1_orig.kernel_size,
+                                         stride=conv_1_orig.stride, padding=conv_1_orig.padding, bias=conv_1_orig.bias)
 
     def forward(self, x) -> Any:
         """
@@ -62,9 +43,10 @@ class SimpleNN(pl.LightningModule):
         :param x: The input data.
         :return: The output of the model.
         """
+        assert len(x.shape) == 5, f"The input data must be 5D. Instead got shape: {x.shape}"
         x = torch.index_select(x, 1, torch.tensor(self.input_parameter_indices).to(x.device))
-        x = x.reshape(x.shape[0], -1)
-        return self.layers(x)
+        x = x.reshape(x.shape[0], x.shape[1]*x.shape[2], x.shape[3], x.shape[4])
+        return self.resnet34_model(x)
 
     def _generic_step(self, batch, step_name: str) -> STEP_OUTPUT:
         """
@@ -78,11 +60,12 @@ class SimpleNN(pl.LightningModule):
         X = torch.index_select(X, 1, torch.tensor(self.input_parameter_indices).to(X.device))
         y = torch.index_select(y, 1, torch.tensor(self.target_parameter_indices).to(y.device))
 
-        X = X.reshape(X.shape[0], -1)
-        y = y.squeeze(-1)
-        assert len(y.shape) == 2, f"The target data must be 2D after squeeze of time dim. instead got shape: {y.shape}"
+        X = X.reshape(X.shape[0], X.shape[1]*X.shape[2], X.shape[3], X.shape[4])
+        y = y.reshape(y.shape[0], y.shape[1]*y.shape[2], y.shape[3], y.shape[4])
 
-        y_hat = self.layers(X)
+        y = y[..., y.shape[-2]//2, y.shape[-1]//2]
+
+        y_hat = self.resnet34_model(X)
 
         loss = nn.functional.mse_loss(y_hat, y)
         mae = nn.functional.l1_loss(y_hat, y)

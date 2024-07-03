@@ -4,6 +4,7 @@ import lightning as pl
 from lightning.pytorch.callbacks import ModelCheckpoint, TQDMProgressBar, DeviceStatsMonitor
 from lightning.pytorch.loggers import TensorBoardLogger
 
+from src.helper.param_helper import convert_param_to_type
 from src.script.script import Script
 
 
@@ -66,7 +67,7 @@ class FitScript(Script, ABC):
             logger=TensorBoardLogger(save_dir=self.service.config['APP']['MODEL_STORE_PATH'],
                                      name=self.service.model_name,
                                      log_graph=bool(self.service.config['FIT']['LOG_GRAPH'])),
-            devices=int(self.service.config['APP']['DEVICES']),
+            devices=convert_param_to_type(self.service.config['APP']['DEVICES']),
             num_nodes=int(self.service.config['APP']['NUM_NODES']),
             strategy=self.service.config['APP']['STRATEGY'],
             precision=self.service.config['FIT']['TRAINER_PRECISION'],

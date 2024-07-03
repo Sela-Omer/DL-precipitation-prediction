@@ -4,3 +4,4 @@ cache/
 *events.out.tfevents.*
 **__pycache__
 .idea
+.lr_find*
