@@ -6,3 +6,4 @@ cache/
 .idea
 .lr_find*
 *slurm*
+lightning_logs/**
