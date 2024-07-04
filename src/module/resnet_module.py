@@ -6,6 +6,7 @@ from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn
 from torchvision.models import resnet34
 
+from src.module.dropout_norm import DropoutNorm
 from src.module.empty_norm import EmptyNorm
 from src.module.half_batchnorm_2d import HalfBatchNorm2d
 from src.service.service import Service
@@ -37,7 +38,7 @@ class ResNetModule(pl.LightningModule):
         norm_layer = None
         if 'NORM_LAYER' in service.config['APP']:
             norm_layer_dict = {'BATCH_NORM': nn.BatchNorm2d, 'HALF_BATCH_NORM': HalfBatchNorm2d,
-                               'EMPTY_NORM': EmptyNorm}
+                               'EMPTY_NORM': EmptyNorm, 'DROPOUT_NORM': DropoutNorm}
             norm_layer = norm_layer_dict[service.config['APP']['NORM_LAYER']]
 
         self.resnet34_model = resnet34(pretrained=False, num_classes=len(self.target_parameters),
