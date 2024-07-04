@@ -6,6 +6,8 @@ from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn
 from torchvision.models import resnet34
 
+from src.module.empty_norm import EmptyNorm
+from src.module.half_batchnorm_2d import HalfBatchNorm2d
 from src.service.service import Service
 
 
@@ -32,10 +34,19 @@ class ResNetModule(pl.LightningModule):
                                          self.target_parameters]
 
         in_channels = len(self.input_parameters) * (self.lookback_range + 1)
-        self.resnet34_model = resnet34(pretrained=False, num_classes=len(self.target_parameters))
+        norm_layer = None
+        if 'NORM_LAYER' in service.config['APP']:
+            norm_layer_dict = {'BATCH_NORM': nn.BatchNorm2d, 'HALF_BATCH_NORM': HalfBatchNorm2d,
+                               'EMPTY_NORM': EmptyNorm}
+            norm_layer = norm_layer_dict[service.config['APP']['NORM_LAYER']]
+
+        self.resnet34_model = resnet34(pretrained=False, num_classes=len(self.target_parameters),
+                                       norm_layer=norm_layer)
         conv_1_orig = self.resnet34_model.conv1
-        self.resnet34_model.conv1 = nn.Conv2d(in_channels, conv_1_orig.out_channels, kernel_size=conv_1_orig.kernel_size,
-                                         stride=conv_1_orig.stride, padding=conv_1_orig.padding, bias=conv_1_orig.bias)
+        self.resnet34_model.conv1 = nn.Conv2d(in_channels, conv_1_orig.out_channels,
+                                              kernel_size=conv_1_orig.kernel_size,
+                                              stride=conv_1_orig.stride, padding=conv_1_orig.padding,
+                                              bias=conv_1_orig.bias)
 
     def forward(self, x) -> Any:
         """
@@ -45,7 +56,7 @@ class ResNetModule(pl.LightningModule):
         """
         assert len(x.shape) == 5, f"The input data must be 5D. Instead got shape: {x.shape}"
         x = torch.index_select(x, 1, torch.tensor(self.input_parameter_indices).to(x.device))
-        x = x.reshape(x.shape[0], x.shape[1]*x.shape[2], x.shape[3], x.shape[4])
+        x = x.reshape(x.shape[0], x.shape[1] * x.shape[2], x.shape[3], x.shape[4])
         return self.resnet34_model(x)
 
     def _generic_step(self, batch, step_name: str) -> STEP_OUTPUT:
@@ -60,10 +71,10 @@ class ResNetModule(pl.LightningModule):
         X = torch.index_select(X, 1, torch.tensor(self.input_parameter_indices).to(X.device))
         y = torch.index_select(y, 1, torch.tensor(self.target_parameter_indices).to(y.device))
 
-        X = X.reshape(X.shape[0], X.shape[1]*X.shape[2], X.shape[3], X.shape[4])
-        y = y.reshape(y.shape[0], y.shape[1]*y.shape[2], y.shape[3], y.shape[4])
+        X = X.reshape(X.shape[0], X.shape[1] * X.shape[2], X.shape[3], X.shape[4])
+        y = y.reshape(y.shape[0], y.shape[1] * y.shape[2], y.shape[3], y.shape[4])
 
-        y = y[..., y.shape[-2]//2, y.shape[-1]//2]
+        y = y[..., y.shape[-2] // 2, y.shape[-1] // 2]
 
         y_hat = self.resnet34_model(X)
 
