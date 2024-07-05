@@ -15,7 +15,9 @@ class SimpleNN(pl.LightningModule):
 
     """
 
-    def __init__(self, service: Service, example_input_array=None, lr=1e-3, **kwargs):
+    def __init__(self, service: Service, example_input_array=None, lr=1e-3,
+                 override_last_lin_planes=None,
+                 **kwargs):
         super().__init__()
         self.example_input_array = example_input_array
         self.service = service
@@ -41,8 +43,12 @@ class SimpleNN(pl.LightningModule):
                         range(self.network_depth)]
         for i in range(self.network_depth - 1):
             layer_lst.append(self._make_layer(layer_planes[i], layer_planes[i + 1], i))
-        last_lin = nn.Linear(layer_planes[-1], len(self.target_parameters))
+
+        last_lin_planes = override_last_lin_planes if override_last_lin_planes is not None else len(
+            self.target_parameters)
+        last_lin = nn.Linear(layer_planes[-1], last_lin_planes)
         layer_lst.append(last_lin)
+
         self.layers = nn.Sequential(*layer_lst)
 
     def _make_layer(self, in_features, out_features, i):
@@ -52,10 +58,11 @@ class SimpleNN(pl.LightningModule):
         :param out_features:
         :return:
         """
-        return nn.Sequential(
-            nn.Linear(in_features, out_features),
-            nn.ReLU(),
-        )
+        layer = [nn.Linear(in_features, out_features), nn.ReLU()]
+        if self.service.config['FIT']['DROPOUT'] == 'True' and self.network_depth // 4 <= i < (
+                self.network_depth * 3) // 4:
+            layer.append(nn.Dropout(0.1))
+        return nn.Sequential(*layer)
 
     def forward(self, x) -> Any:
         """

@@ -6,6 +6,8 @@ from src.helper.param_helper import convert_param_to_type
 from src.script.fit_naive_module_script import FitNaiveModuleScript
 from src.script.fit_residual_nn_script import FitResidualNNScript
 from src.script.fit_resnet_script import FitResNetScript
+from src.script.fit_simple_nn_polynomial_predictor_script import FitSimpleNNPolynomialPredictorScript
+from src.script.fit_simple_nn_rnn_predictor_script import FitSimpleNN_RNNPredictorScript
 from src.script.fit_simple_nn_script import FitSimpleNNScript
 from src.script.fit_simple_nn_skip_connection_script import FitSimpleNNSkipConnectionScript
 from src.service.service import Service
@@ -62,6 +64,8 @@ class ServiceFit(Service):
             'NAIVE_MODULE': FitNaiveModuleScript(self),
             'RESNET': FitResNetScript(self),
             'SIMPLE_NN_SKIP_CONNECTION': FitSimpleNNSkipConnectionScript(self),
+            'SIMPLE_NN_POLYNOMIAL_PREDICTOR': FitSimpleNNPolynomialPredictorScript(self),
+            'SIMPLE_NN_RNN_PREDICTOR': FitSimpleNN_RNNPredictorScript(self),
         }
 
         return script_dict

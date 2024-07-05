@@ -8,6 +8,7 @@ from lightning.pytorch.callbacks import ModelCheckpoint, TQDMProgressBar, Device
 from lightning.pytorch.loggers import TensorBoardLogger
 from matplotlib import pyplot as plt
 
+from src.helper.param_helper import convert_param_to_type
 from src.script.script import Script
 from src.transform.noise_tfm import NoiseTfm
 
@@ -31,8 +32,8 @@ class EvalScript(Script, ABC):
             log_every_n_steps=1,
             callbacks=callbacks,
             logger=None,
-            devices=int(self.service.config['APP']['DEVICES']),
-            num_nodes=int(self.service.config['APP']['NUM_NODES']),
+            devices=convert_param_to_type(self.service.config['APP']['DEVICES']),
+            num_nodes=convert_param_to_type(self.service.config['APP']['NUM_NODES']),
             strategy=self.service.config['APP']['STRATEGY'],
         )
         return trainer

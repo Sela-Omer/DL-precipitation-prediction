@@ -1,0 +1,6 @@
+from src.script.data_analysis_script import DataAnalysisScript
+from src.script.simple_nn_polynomial_predictor_script import SimpleNNPolynomialPredictorScript
+
+
+class DataAnalysisSimpleNNPolynomialPredictorScript(DataAnalysisScript, SimpleNNPolynomialPredictorScript):
+    pass

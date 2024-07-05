@@ -1,3 +1,6 @@
+from types import NoneType
+from typing import Union
+
 import torch
 from torch import nn
 
@@ -12,7 +15,8 @@ class SkipConnectionModule(nn.Module):
 
     """
 
-    def __init__(self, module_1: nn.Module, module_2: nn.Module, select_skip_connection_function, concat_dim: int):
+    def __init__(self, module_1: nn.Module, module_2: nn.Module, select_skip_connection_function,
+                 concat_dim: Union[int, NoneType]):
         super().__init__()
         self.module_1 = module_1
         self.module_2 = module_2
@@ -22,6 +26,9 @@ class SkipConnectionModule(nn.Module):
     def forward(self, x):
         skip = self.select_skip_connection_function(x)
         x = self.module_1(x)
-        x = torch.cat([x, skip], dim=self.concat_dim)
-        x = self.module_2(x)
+        if self.concat_dim is None:
+            x = self.module_2(x, skip)
+        else:
+            x = torch.cat([x, skip], dim=self.concat_dim)
+            x = self.module_2(x)
         return x
