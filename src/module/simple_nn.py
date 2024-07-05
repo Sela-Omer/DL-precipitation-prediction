@@ -22,6 +22,7 @@ class SimpleNN(pl.LightningModule):
         self.lr = lr
 
         self.lookback_range = service.lookback_range
+        self.forecast_range = service.forecast_range
 
         # assert self.lookback_range == 0, "The lookback range must be 0 for the SimpleNN model. As there is no temporal component in the architecture."
 

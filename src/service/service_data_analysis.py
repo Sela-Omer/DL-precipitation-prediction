@@ -3,6 +3,7 @@ from typing import Callable, Dict
 from src.script.data_analyisis_resnet_script import DataAnalysisResnetScript
 from src.script.data_analyisis_residual_nn_script import DataAnalysisResidualNNScript
 from src.script.data_analyisis_simple_nn_script import DataAnalysisSimpleNNScript
+from src.script.data_analyisis_simple_nn_skip_connection_script import DataAnalysisSimpleNNSkipConnectionScript
 from src.service.service import Service
 
 
@@ -34,6 +35,7 @@ class ServiceDataAnalysis(Service):
             'SIMPLE_NN': DataAnalysisSimpleNNScript(self),
             'RESIDUAL_NN': DataAnalysisResidualNNScript(self),
             'RESNET': DataAnalysisResnetScript(self),
+            'SIMPLE_NN_SKIP_CONNECTION': DataAnalysisSimpleNNSkipConnectionScript(self),
         }
 
         return script_dict

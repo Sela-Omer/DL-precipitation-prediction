@@ -4,6 +4,7 @@ from src.script.eval_naive_module_script import EvalNaiveModuleScript
 from src.script.eval_residual_nn_script import EvalResidualNNScript
 from src.script.eval_resnet_script import EvalResNetScript
 from src.script.eval_simple_nn_script import EvalSimpleNNScript
+from src.script.eval_simple_nn_skip_connection_script import EvalSimpleNNSkipConnectionScript
 from src.service.service import Service
 
 
@@ -35,6 +36,7 @@ class ServiceEval(Service):
             'RESIDUAL_NN': EvalResidualNNScript(self),
             'NAIVE_MODULE': EvalNaiveModuleScript(self),
             'RESNET': EvalResNetScript(self),
+            'SIMPLE_NN_SKIP_CONNECTION': EvalSimpleNNSkipConnectionScript(self),
         }
 
         return script_dict

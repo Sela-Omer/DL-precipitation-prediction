@@ -7,6 +7,7 @@ from src.script.fit_naive_module_script import FitNaiveModuleScript
 from src.script.fit_residual_nn_script import FitResidualNNScript
 from src.script.fit_resnet_script import FitResNetScript
 from src.script.fit_simple_nn_script import FitSimpleNNScript
+from src.script.fit_simple_nn_skip_connection_script import FitSimpleNNSkipConnectionScript
 from src.service.service import Service
 
 
@@ -60,6 +61,7 @@ class ServiceFit(Service):
             'RESIDUAL_NN': FitResidualNNScript(self),
             'NAIVE_MODULE': FitNaiveModuleScript(self),
             'RESNET': FitResNetScript(self),
+            'SIMPLE_NN_SKIP_CONNECTION': FitSimpleNNSkipConnectionScript(self),
         }
 
         return script_dict

@@ -21,7 +21,7 @@ class SimpleNN_SkipConnection(SimpleNN):
 
         body = list(self.layers[:-1])
         body_out_features = self.layers[-1].in_features
-        skip_len = self.lookback_range * len(self.target_parameters)
+        skip_len = (self.lookback_range + 1) * len(self.target_parameters)
         last_lin = nn.Linear(body_out_features + skip_len,
                              len(self.target_parameters))
         nn.init.constant_(last_lin.weight, 0)
@@ -36,4 +36,11 @@ class SimpleNN_SkipConnection(SimpleNN):
                                            1)
 
     def _select_skip_connection(self, x):
-        return torch.index_select(x, 1, torch.tensor(self.target_parameter_indices).to(x.device))
+        x = x.reshape(x.shape[0], len(self.input_parameters), self.lookback_range + 1)
+        x = torch.index_select(x, 1, torch.tensor(self.target_parameter_indices).to(x.device))
+        for t in range(x.shape[2] - 1):
+            prv = x[:, :, t]
+            nxt = x[:, :, -1]
+            times = x.shape[2] - t - 1
+            x[:, :, t] = (nxt + ((self.forecast_range) * (nxt - prv)) / times)
+        return x.reshape(x.shape[0], -1)
