@@ -1,5 +1,6 @@
 from typing import Callable, Dict
 
+from src.script.data_analyisis_resnet_rnn_predictor_script import DataAnalysisResnetRNN_PredictorScript
 from src.script.data_analyisis_resnet_script import DataAnalysisResnetScript
 from src.script.data_analyisis_residual_nn_script import DataAnalysisResidualNNScript
 from src.script.data_analyisis_simple_nn_polynomial_predictor_script import \
@@ -38,6 +39,7 @@ class ServiceDataAnalysis(Service):
             'SIMPLE_NN': DataAnalysisSimpleNNScript(self),
             'RESIDUAL_NN': DataAnalysisResidualNNScript(self),
             'RESNET': DataAnalysisResnetScript(self),
+            'RESNET_RNN_PREDICTOR': DataAnalysisResnetRNN_PredictorScript(self),
             'SIMPLE_NN_SKIP_CONNECTION': DataAnalysisSimpleNNSkipConnectionScript(self),
             'SIMPLE_NN_POLYNOMIAL_PREDICTOR': DataAnalysisSimpleNNPolynomialPredictorScript(self),
             'SIMPLE_NN_RNN_PREDICTOR': DataAnalysisSimpleNN_RNNPredictorScript(self),

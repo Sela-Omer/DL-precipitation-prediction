@@ -2,6 +2,7 @@ from typing import Callable, Dict
 
 from src.script.eval_naive_module_script import EvalNaiveModuleScript
 from src.script.eval_residual_nn_script import EvalResidualNNScript
+from src.script.eval_resnet_rnn_predictor_script import EvalResNetRNN_PredictorScript
 from src.script.eval_resnet_script import EvalResNetScript
 from src.script.eval_simple_nn_polynomial_predictor_script import EvalSimpleNNPolynomialPredictorScript
 from src.script.eval_simple_nn_rnn_predictor_script import EvalSimpleNN_RNNPredictorScript
@@ -38,6 +39,7 @@ class ServiceEval(Service):
             'RESIDUAL_NN': EvalResidualNNScript(self),
             'NAIVE_MODULE': EvalNaiveModuleScript(self),
             'RESNET': EvalResNetScript(self),
+            'RESNET_RNN_PREDICTOR': EvalResNetRNN_PredictorScript(self),
             'SIMPLE_NN_SKIP_CONNECTION': EvalSimpleNNSkipConnectionScript(self),
             'SIMPLE_NN_POLYNOMIAL_PREDICTOR': EvalSimpleNNPolynomialPredictorScript(self),
             'SIMPLE_NN_RNN_PREDICTOR': EvalSimpleNN_RNNPredictorScript(self),

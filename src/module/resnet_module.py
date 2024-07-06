@@ -18,7 +18,7 @@ class ResNetModule(pl.LightningModule):
 
     """
 
-    def __init__(self, service: Service, example_input_array=None, lr=1e-3, **kwargs):
+    def __init__(self, service: Service, example_input_array=None, lr=1e-3, override_last_lin_planes=None, **kwargs):
         super().__init__()
         self.example_input_array = example_input_array
         self.service = service
@@ -41,7 +41,9 @@ class ResNetModule(pl.LightningModule):
                                'EMPTY_NORM': EmptyNorm, 'DROPOUT_NORM': DropoutNorm}
             norm_layer = norm_layer_dict[service.config['APP']['NORM_LAYER']]
 
-        self.resnet34_model = resnet34(pretrained=False, num_classes=len(self.target_parameters),
+
+        num_classes = len(self.target_parameters) if override_last_lin_planes is None else override_last_lin_planes
+        self.resnet34_model = resnet34(pretrained=False, num_classes=num_classes,
                                        norm_layer=norm_layer)
         conv_1_orig = self.resnet34_model.conv1
         self.resnet34_model.conv1 = nn.Conv2d(in_channels, conv_1_orig.out_channels,
