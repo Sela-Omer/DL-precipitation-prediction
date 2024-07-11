@@ -10,11 +10,11 @@ config.read('src/config/config.ini')
 
 
 # Scan command line arguments for the APP_overwrite_config_path argument
-if 'APP_overwrite_config_path' in sys.argv:
-    # Find the index of the APP_overwrite_config_path argument
-    index = sys.argv.index('APP_overwrite_config_path')
-    # Get the value of the APP_overwrite_config_path argument (assuming it has a value)
-    config['APP']['OVERWRITE_CONFIG_PATH'] = sys.argv[index + 1]
+for arg in sys.argv:
+    # Check if the argument contains the APP_overwrite_config_path string
+    if '--APP_overwrite_config_path=' in arg:
+        # Set the OVERWRITE_CONFIG_PATH in the config object
+        config['APP']['OVERWRITE_CONFIG_PATH'] = arg.replace('--APP_overwrite_config_path=', '')
 
 if 'OVERWRITE_CONFIG_PATH' in config['APP']:
     if os.path.isfile(config['APP']['OVERWRITE_CONFIG_PATH']):
