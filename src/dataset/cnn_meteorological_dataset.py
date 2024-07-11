@@ -14,6 +14,8 @@ class CNN_MeteorologicalDataset(MeteorologicalDataset):
         """
         index_file = self.index_files[idx]
         data_list = self._load_data(index_file)
+        assert all(data.shape == data_list[0].shape for data in
+                   data_list), f"Shape mismatch: {[data.shape for data in data_list]}"
         concatenated_data = np.stack(data_list, axis=0)  # Shape: NUMBER_OF_PARAMETERS x TIMES x HEIGHT x WIDTH
         return torch.tensor(concatenated_data, dtype=torch.float32)
 
