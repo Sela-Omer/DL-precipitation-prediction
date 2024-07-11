@@ -3,6 +3,7 @@ import argparse
 import torch
 
 from src.config.config import config
+from src.helper.param_helper import convert_param_to_list
 from src.service.service_data_analysis import ServiceDataAnalysis
 from src.service.service_eval import ServiceEval
 from src.service.service_fit import ServiceFit
@@ -63,23 +64,32 @@ def override_config(config, args):
 
 
 if __name__ == "__main__":
+    # Print the number of GPUs and their names
     gpus = torch.cuda.device_count()
     gpu_names = [torch.cuda.get_device_name(i) for i in range(gpus)]
     print(f"Number of GPUs: {gpus}")
     print(f"GPU names: {gpu_names}")
 
+    # Parse the command line arguments
     args = parse_arguments(config)
+    # Override the config settings with the command line arguments
     override_config(config, args)
 
-    app_mode = config['APP']['MODE']
+    # Convert the APP.MODE parameter to a list
+    app_mode_lst = convert_param_to_list(config['APP']['MODE'])
+    # Get the APP.ARCH parameter
     app_arch = config['APP']['ARCH']
 
+    # Create a dictionary of service objects
     service_dict = {
         "FIT": ServiceFit,
         "EVAL": ServiceEval,
         "DATA_ANALYSIS": ServiceDataAnalysis,
     }
-    service = service_dict[app_mode](config)
+    for app_mode in app_mode_lst:
+        # Create the service object
+        service = service_dict[app_mode](config)
 
-    script = service.scripts[app_arch]
-    script()
+        # Run the script
+        script = service.scripts[app_arch]
+        script()
