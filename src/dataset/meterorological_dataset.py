@@ -82,7 +82,25 @@ class MeteorologicalDataset(ABC, Dataset):
         for param, count in dropped_files_stats.items():
             print(f"{param}: {count}")
 
-        return index_files
+        lat_filtered_index_files = self._filter_index_files_with_lat(index_files)
+        print(
+            f"Number of files with |lat|<70: {len(lat_filtered_index_files)}. dropped files: {len(index_files) - len(lat_filtered_index_files)}")
+
+        return lat_filtered_index_files
+
+    def _filter_index_files_with_lat(self, index_files):
+        """
+        Filter the index files based on the latitude.
+        :param index_files: The index files to filter.
+        :return: The filtered index files with |lat|<70.
+        """
+        filtered_index_files = []
+        for index_file in index_files:
+            lat_file_path = os.path.join(self.data_dir, 'lat', index_file.split('_')[1], index_file)
+            lat_mat = np.load(lat_file_path)
+            if np.abs(lat_mat).max() < 70:
+                filtered_index_files.append(index_file)
+        return filtered_index_files
 
     def _load_or_create_cache(self):
         """
