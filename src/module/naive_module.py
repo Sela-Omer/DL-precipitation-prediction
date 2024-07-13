@@ -50,8 +50,8 @@ class NaiveModule(pl.LightningModule):
 
         loss = nn.functional.mse_loss(y_hat, y)
         mae = nn.functional.l1_loss(y_hat, y)
-        self.log(f'{step_name}_loss', loss)
-        self.log(f'{step_name}_mae', mae, prog_bar=True)
+        self.log(f'{step_name}_loss', loss, sync_dist=True)
+        self.log(f'{step_name}_mae', mae, prog_bar=True, sync_dist=True)
 
     def training_step(self, batch) -> STEP_OUTPUT:
         """
