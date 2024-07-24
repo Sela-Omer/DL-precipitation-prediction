@@ -3,9 +3,6 @@ from abc import ABC
 
 import lightning as pl
 import torch
-import torchaudio
-from lightning.pytorch.callbacks import ModelCheckpoint, TQDMProgressBar, DeviceStatsMonitor
-from lightning.pytorch.loggers import TensorBoardLogger
 from matplotlib import pyplot as plt
 
 from src.helper.param_helper import convert_param_to_type
@@ -122,6 +119,7 @@ class EvalScript(Script, ABC):
         self.service.add_tfm(noise_tfm)
         for param in self.service.input_parameters:
             noise_tfm.set_noise_param_index(self.service.get_parameter_index(param))
+            trainer.test_loop._results.clear()
             metric_dict_lst = trainer.test(model=arch, datamodule=datamodule,
                                            ckpt_path=self._get_model_checkpoint(),
                                            verbose=True)
