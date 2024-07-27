@@ -8,6 +8,7 @@ from src.script.eval_simple_nn_polynomial_predictor_script import EvalSimpleNNPo
 from src.script.eval_simple_nn_rnn_predictor_script import EvalSimpleNN_RNNPredictorScript
 from src.script.eval_simple_nn_script import EvalSimpleNNScript
 from src.script.eval_simple_nn_skip_connection_script import EvalSimpleNNSkipConnectionScript
+from src.script.eval_skip_connection_cnn_script import EvalSkipConnectionCNNScript
 from src.service.service import Service
 
 
@@ -43,6 +44,7 @@ class ServiceEval(Service):
             'SIMPLE_NN_SKIP_CONNECTION': EvalSimpleNNSkipConnectionScript(self),
             'SIMPLE_NN_POLYNOMIAL_PREDICTOR': EvalSimpleNNPolynomialPredictorScript(self),
             'SIMPLE_NN_RNN_PREDICTOR': EvalSimpleNN_RNNPredictorScript(self),
+            'CNN_SKIP_CONNECTION': EvalSkipConnectionCNNScript(self),
         }
 
         return script_dict

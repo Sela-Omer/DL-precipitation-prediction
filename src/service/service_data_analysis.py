@@ -8,6 +8,7 @@ from src.script.data_analyisis_simple_nn_polynomial_predictor_script import \
 from src.script.data_analyisis_simple_nn_rnn_predictor_script import DataAnalysisSimpleNN_RNNPredictorScript
 from src.script.data_analyisis_simple_nn_script import DataAnalysisSimpleNNScript
 from src.script.data_analyisis_simple_nn_skip_connection_script import DataAnalysisSimpleNNSkipConnectionScript
+from src.script.data_analysis_skip_connection_cnn_script import DataAnalysisSkipConnectionCNNScript
 from src.service.service import Service
 
 
@@ -24,7 +25,6 @@ class ServiceDataAnalysis(Service):
         """
         super().__init__(*arg, **kwargs)
         self.tfms = [tfm for tfm in self.tfms if tfm.tfm_name != 'normalize']
-
 
     @property
     def scripts(self) -> Dict[str, Callable]:
@@ -43,6 +43,7 @@ class ServiceDataAnalysis(Service):
             'SIMPLE_NN_SKIP_CONNECTION': DataAnalysisSimpleNNSkipConnectionScript(self),
             'SIMPLE_NN_POLYNOMIAL_PREDICTOR': DataAnalysisSimpleNNPolynomialPredictorScript(self),
             'SIMPLE_NN_RNN_PREDICTOR': DataAnalysisSimpleNN_RNNPredictorScript(self),
+            'CNN_SKIP_CONNECTION': DataAnalysisSkipConnectionCNNScript(self),
         }
 
         return script_dict
