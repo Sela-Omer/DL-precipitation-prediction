@@ -11,6 +11,7 @@ from src.script.fit_simple_nn_polynomial_predictor_script import FitSimpleNNPoly
 from src.script.fit_simple_nn_rnn_predictor_script import FitSimpleNN_RNNPredictorScript
 from src.script.fit_simple_nn_script import FitSimpleNNScript
 from src.script.fit_simple_nn_skip_connection_script import FitSimpleNNSkipConnectionScript
+from src.script.fit_skip_connection_cnn_script import FitSkipConnectionCNNScript
 from src.service.service import Service
 
 
@@ -68,6 +69,7 @@ class ServiceFit(Service):
             'SIMPLE_NN_SKIP_CONNECTION': FitSimpleNNSkipConnectionScript(self),
             'SIMPLE_NN_POLYNOMIAL_PREDICTOR': FitSimpleNNPolynomialPredictorScript(self),
             'SIMPLE_NN_RNN_PREDICTOR': FitSimpleNN_RNNPredictorScript(self),
+            'CNN_SKIP_CONNECTION': FitSkipConnectionCNNScript(self),
         }
 
         return script_dict
