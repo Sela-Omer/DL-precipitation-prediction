@@ -64,10 +64,18 @@ def override_config(config, args):
 
 
 if __name__ == "__main__":
+    print("Enter python main")
     # Print the number of GPUs and their names
+    print(f"cuda is available: {torch.cuda.is_available()}")
+    print(f"cuda is initialized: {torch.cuda.is_initialized()}")
+    if not torch.cuda.is_initialized():
+        print("initializing manually...")
+        torch.cuda.init()
+        print(f"cuda is initialized: {torch.cuda.is_initialized()}")
+
     gpus = torch.cuda.device_count()
-    gpu_names = [torch.cuda.get_device_name(i) for i in range(gpus)]
     print(f"Number of GPUs: {gpus}")
+    gpu_names = [torch.cuda.get_device_name(i) for i in range(gpus)]
     print(f"GPU names: {gpu_names}")
 
     # Parse the command line arguments
