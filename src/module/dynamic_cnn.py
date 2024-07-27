@@ -1,6 +1,9 @@
 import torch
 from torch import nn
 
+from src.module.flatten_module import FlattenModule
+
+
 class DynamicCNN(nn.Module):
     def __init__(self, norm_module_class, pool_module_class, in_channels, target_len, depth):
         super(DynamicCNN, self).__init__()
@@ -20,11 +23,9 @@ class DynamicCNN(nn.Module):
 
         self.conv_layers = nn.Sequential(*layers)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.flatten = FlattenModule(1)
         self.fc = nn.Linear(in_channels, self.target_len)
+        self.body = nn.Sequential(*[self.conv_layers, self.avgpool, self.flatten, self.fc])
 
     def forward(self, x):
-        x = self.conv_layers(x)
-        x = self.avgpool(x)
-        x = torch.flatten(x, 1)
-        x = self.fc(x)
-        return x
+        return self.body(x)
