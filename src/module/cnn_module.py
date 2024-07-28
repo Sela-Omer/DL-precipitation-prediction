@@ -40,7 +40,7 @@ class CNNModule(pl.LightningModule):
                            'EMPTY_NORM': EmptyNorm, 'DROPOUT_NORM': DropoutNorm}
         norm_layer = norm_layer_dict[service.config['APP']['NORM_LAYER']]
         pool_layer_dict = {'AVG_POOL': nn.AvgPool2d, 'MAX_POOL': nn.MaxPool2d, }
-        pool_layer = norm_layer_dict[service.config['APP']['NORM_LAYER']]
+        pool_layer = pool_layer_dict[service.config['APP']['POOL_LAYER']]
 
         num_classes = len(self.target_parameters) if override_last_lin_planes is None else override_last_lin_planes
         self.cnn = DynamicCNN(norm_layer, pool_layer, in_channels, num_classes, service.network_depth)
