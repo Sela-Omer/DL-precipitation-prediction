@@ -19,6 +19,7 @@ class SkipConnectionCNNModule(CNNModule):
         skip_len = (self.lookback_range + 1) * len(self.target_parameters)
         last_lin = nn.Linear(body_out_features + skip_len,
                              len(self.target_parameters))
+        self.cnn.fc = last_lin
         nn.init.constant_(last_lin.weight, 0)
 
         # Set the last k weights to 1/k

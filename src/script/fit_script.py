@@ -3,6 +3,7 @@ from abc import ABC
 import lightning as pl
 from lightning.pytorch.callbacks import ModelCheckpoint, TQDMProgressBar, DeviceStatsMonitor
 from lightning.pytorch.loggers import TensorBoardLogger
+from lightning.pytorch.strategies import DDPStrategy
 
 from src.helper.param_helper import convert_param_to_type
 from src.script.script import Script
