@@ -13,8 +13,8 @@ class DynamicCNN(nn.Module):
         layers = []
         out_channels = 32
 
-        for _ in range(depth):
-            layers.append(nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1))
+        for i in range(depth):
+            layers.append(nn.Conv2d(in_channels, out_channels, kernel_size=3 if depth < 4 else 1, padding=3 if depth < 4 else 0))
             layers.append(norm_module_class(out_channels))
             layers.append(pool_module_class(kernel_size=2, stride=2))
 
