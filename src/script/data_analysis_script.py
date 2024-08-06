@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Tuple
+from typing import Tuple, Any
 
 import lightning as pl
 import numpy as np
@@ -24,7 +24,9 @@ class DataAnalysisScript(Script, ABC):
     def create_architecture(self, datamodule: pl.LightningDataModule):
         pass
 
-    def generate_stats_dataloader(self, dataloader: DataLoader) -> Tuple[torch.Tensor, torch.Tensor]:
+    def generate_stats_dataloader(self, dataloader: DataLoader, exec_grad_stats=False) -> tuple[
+                                                                                              float | Any, Any, float | Any, Any] | \
+                                                                                          tuple[float | Any, Any]:
         """
         Generate the mean and standard deviation of the data in the dataloader.
         :param dataloader: The dataloader to analyze.
@@ -32,6 +34,8 @@ class DataAnalysisScript(Script, ABC):
         """
         param_sum = None
         param_sum_squared = None
+        grad_param_sum = None
+        grad_param_sum_squared = None
         count = 0
 
         # Iterate over the dataloader
@@ -39,16 +43,32 @@ class DataAnalysisScript(Script, ABC):
             # Generate statistics for the current batch
             param_sum_batch, param_sum_squared_batch, count_batch = self.generate_stats_one_batch(X)
 
+            if exec_grad_stats:
+                grad_param_sum_batch, grad_param_sum_squared_batch, grad_count_batch = self.generate_stats_one_batch(
+                    self.take_grad_over_time_one_batch(X))
+                if grad_param_sum is None:
+                    grad_param_sum = grad_param_sum_batch
+                    grad_param_sum_squared = grad_param_sum_squared_batch
+                else:
+                    grad_param_sum += grad_param_sum_batch
+                    grad_param_sum_squared += grad_param_sum_squared_batch
+
             if param_sum is None:
                 param_sum = param_sum_batch
                 param_sum_squared = param_sum_squared_batch
             else:
                 param_sum += param_sum_batch
                 param_sum_squared += param_sum_squared_batch
+
             count += count_batch
 
         mean = param_sum / count
         std = np.sqrt((param_sum_squared / count) - (mean ** 2))
+
+        if exec_grad_stats:
+            grad_mean = grad_param_sum / count
+            grad_std = np.sqrt((grad_param_sum_squared / count) - (grad_mean ** 2))
+            return mean, std, grad_mean, grad_std
 
         return mean, std
 
@@ -65,6 +85,22 @@ class DataAnalysisScript(Script, ABC):
             return param_sum, param_sum_squared, X.shape[0] * X.shape[2]
 
         raise NotImplementedError(f"generate_stats_one_batch not implemented for shape {X.shape}")
+
+    def take_grad_over_time_one_batch(self, X):
+        # convolve the X mat with the kernel (-1, 0, 1) to get the gradient
+        kernel = torch.tensor([-1, 0, 1], dtype=torch.float32).unsqueeze(0).unsqueeze(0)
+
+        if len(X.shape) == 5:
+            # BATCH x PARAMS x TIMES x HEIGHT x WIDTH
+            kernel = kernel.unsqueeze(-1).unsqueeze(-1)
+            X_grad = torch.nn.functional.conv3d(X, kernel, padding=(1, 0, 0))
+            return X_grad
+        elif len(X.shape) == 3:
+            # BATCH x PARAMS x TIMES
+            X_grad = torch.nn.functional.conv1d(X, kernel, padding=1)
+            return X_grad
+        else:
+            raise NotImplementedError(f"take_grad_over_time_one_batch not implemented for shape {X.shape}")
 
     def __call__(self):
         """
