@@ -5,6 +5,7 @@ import torch
 from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn
 
+from src.helper.param_helper import convert_param_to_type
 from src.module.dropout_norm import DropoutNorm
 from src.module.dynamic_cnn import DynamicCNN
 from src.module.empty_norm import EmptyNorm
@@ -42,8 +43,10 @@ class CNNModule(pl.LightningModule):
         pool_layer_dict = {'AVG_POOL': nn.AvgPool2d, 'MAX_POOL': nn.MaxPool2d, }
         pool_layer = pool_layer_dict[service.config['APP']['POOL_LAYER']]
 
+        lin_ch_mult = convert_param_to_type(self.service.config['APP']['LIN_CH_MULT']) if 'LIN_CH_MULT' in self.service.config['APP'] else 2
+
         num_classes = len(self.target_parameters) if override_last_lin_planes is None else override_last_lin_planes
-        self.cnn = DynamicCNN(norm_layer, pool_layer, in_channels, num_classes, service.network_depth)
+        self.cnn = DynamicCNN(norm_layer, pool_layer, in_channels, num_classes, service.network_depth, lin_ch_mult=lin_ch_mult)
 
 
     def forward(self, x) -> Any:

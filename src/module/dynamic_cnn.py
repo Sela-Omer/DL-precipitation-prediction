@@ -5,7 +5,7 @@ from src.module.flatten_module import FlattenModule
 
 
 class DynamicCNN(nn.Module):
-    def __init__(self, norm_module_class, pool_module_class, in_channels, target_len, depth):
+    def __init__(self, norm_module_class, pool_module_class, in_channels, target_len, depth, lin_ch_mult=2):
         super(DynamicCNN, self).__init__()
         self.target_len = target_len
         self.depth = depth
@@ -30,7 +30,7 @@ class DynamicCNN(nn.Module):
             layers.append(nn.Linear(in_channels,out_channels))
             layers.append(nn.ReLU())
             in_channels = out_channels
-            out_channels *= 2
+            out_channels *= lin_ch_mult
 
         self.layers = nn.Sequential(*layers)
 
