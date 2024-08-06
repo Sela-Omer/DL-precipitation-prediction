@@ -7,3 +7,4 @@ cache/
 .lr_find*
 *slurm*
 lightning_logs/**
+src/notebook/.ipynb_checkpoints
