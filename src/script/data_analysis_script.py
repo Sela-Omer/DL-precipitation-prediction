@@ -87,20 +87,12 @@ class DataAnalysisScript(Script, ABC):
         raise NotImplementedError(f"generate_stats_one_batch not implemented for shape {X.shape}")
 
     def take_grad_over_time_one_batch(self, X):
-        # convolve the X mat with the kernel (-1, 0, 1) to get the gradient
-        kernel = torch.tensor([-1, 0, 1], dtype=torch.float32).unsqueeze(0).unsqueeze(0)
-
-        if len(X.shape) == 5:
-            # BATCH x PARAMS x TIMES x HEIGHT x WIDTH
-            kernel = kernel.unsqueeze(-1).unsqueeze(-1)
-            X_grad = torch.nn.functional.conv3d(X, kernel, padding=(1, 0, 0))
-            return X_grad
-        elif len(X.shape) == 3:
-            # BATCH x PARAMS x TIMES
-            X_grad = torch.nn.functional.conv1d(X, kernel, padding=1)
-            return X_grad
-        else:
-            raise NotImplementedError(f"take_grad_over_time_one_batch not implemented for shape {X.shape}")
+        X_grad = torch.zeros_like(X)
+        for t in range(1, X.shape[2] - 1):
+            X_grad[:, :, t] = -X[:, :, t - 1] + X[:, :, t + 1]
+        X_grad[:, :, 0] = X_grad[:, :, 1]
+        X_grad[:, :, -1] = X_grad[:, :, -2]
+        return X_grad
 
     def __call__(self):
         """
