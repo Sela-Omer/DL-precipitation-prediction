@@ -18,7 +18,7 @@ class SkipConnectionCNNScript(Script, ABC):
     def create_architecture(self, datamodule: pl.LightningDataModule):
         example_input_array, _ = next(iter(datamodule.train_dataloader()))
         model_hyperparams = self.service.model_hyperparams if hasattr(self.service, 'model_hyperparams') else {}
-        model = \(self.service, example_input_array=example_input_array, **model_hyperparams)
+        model = SkipConnectionCNNModule(self.service, example_input_array=example_input_array, **model_hyperparams)
         summary(model, input_size=example_input_array.shape[1:], device=str(model.device))
         return model
 
