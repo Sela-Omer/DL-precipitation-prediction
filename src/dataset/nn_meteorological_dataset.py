@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
@@ -42,4 +44,5 @@ class NN_MeteorologicalCenterPointDataset(MeteorologicalDataset):
             axes[i, 0].legend()
 
         plt.tight_layout(rect=[0, 0, 1, 0.96])
+        plt.savefig(f"media/nn_{time.time_ns()}.png")
         plt.show()

@@ -64,7 +64,6 @@ def override_config(config, args):
 
 
 if __name__ == "__main__":
-    print("Enter python main")
     # Print the number of GPUs and their names
     print(f"cuda is available: {torch.cuda.is_available()}")
     print(f"cuda is initialized: {torch.cuda.is_initialized()}")
