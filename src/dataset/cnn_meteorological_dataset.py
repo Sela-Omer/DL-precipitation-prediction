@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
-
+import time
 from src.dataset.meterorological_dataset import MeteorologicalDataset
 
 
@@ -59,6 +59,7 @@ class CNN_MeteorologicalDataset(MeteorologicalDataset):
             axes[i, 0].legend()
 
         plt.tight_layout(rect=[0, 0, 1, 0.96])
+        plt.savefig(f"media/cnn_1_{time.time_ns()}.png")
         plt.show()
 
         # Additional imshow plots for multiple time steps and pressures
@@ -78,6 +79,7 @@ class CNN_MeteorologicalDataset(MeteorologicalDataset):
                         ax.set_title(f"{param} (Time step {t})")
 
         plt.tight_layout()
+        plt.savefig(f"media/cnn_2_{time.time_ns()}.png")
         plt.show()
 
 

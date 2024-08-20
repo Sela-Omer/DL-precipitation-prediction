@@ -8,6 +8,7 @@ from src.helper.param_helper import convert_param_to_type, convert_param_to_list
 from src.transform.circular_unfold_tfm import CircularUnfoldTfm
 from src.transform.correct_intensity_tfm import CorrectIntensityTfm
 from src.transform.norm_tfm import NormalizeTfm
+from src.transform.sum_tfm import SumTfm
 
 
 class Service(ABC):
@@ -52,7 +53,8 @@ class Service(ABC):
         tfm_lst = [NormalizeTfm(self),
                    CorrectIntensityTfm(self),
                    CircularUnfoldTfm(self, 'date', 1, 366),
-                   CircularUnfoldTfm(self, 'lon', 0, 360),]
+                   CircularUnfoldTfm(self, 'lon', 0, 360),
+                   SumTfm(self, 'tp')]
         for tfm in tfm_lst:
             assert isinstance(tfm, Callable), f"Transform {tfm} is not callable."
             assert hasattr(tfm, 'tfm_name'), f"Transform {tfm} does not have a tfm_name attribute."

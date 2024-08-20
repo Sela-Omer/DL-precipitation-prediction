@@ -1,6 +1,7 @@
 mock_data/
 cache/
 *.ckpt
+*.ckpt.*
 *events.out.tfevents.*
 **__pycache__
 .idea
