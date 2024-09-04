@@ -27,6 +27,7 @@ class Service(ABC):
         self.cpu_workers = convert_param_to_type(self.config['APP']['CPU_WORKERS'])
         self.environment = convert_param_to_type(self.config['APP']['ENVIRONMENT'])
 
+        self.land_sea_mask_path = self.config['DATA']['LAND_SEA_MASK_PATH']
         self.data_parameters = convert_param_to_list(self.config['DATA']['PARAMETERS'])
         self.norm_parameters = convert_param_to_list(self.config['DATA']['NORM_PARAMETERS'])
         self.target_parameters = convert_param_to_list(self.config['DATA']['TARGET_PARAMETERS'])
