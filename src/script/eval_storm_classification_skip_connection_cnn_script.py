@@ -1,0 +1,7 @@
+from src.script.eval_script import EvalScript
+from src.script.eval_storm_classification_script import EvalStormClassificationScript
+from src.script.skip_connection_cnn_script import SkipConnectionCNNScript
+
+
+class EvalStormClassificationSkipConnectionCNNScript(EvalStormClassificationScript, SkipConnectionCNNScript):
+    pass
