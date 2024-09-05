@@ -1,16 +1,9 @@
 import json
-import os.path
 from abc import ABC
 
-import lightning as pl
 import pandas as pd
-import torch
-from matplotlib import pyplot as plt
 
-from src.helper.param_helper import convert_param_to_type
 from src.script.eval_script import EvalScript
-from src.script.script import Script
-from src.transform.noise_tfm import NoiseTfm
 
 
 class EvalStormClassificationScript(EvalScript, ABC):
@@ -24,11 +17,11 @@ class EvalStormClassificationScript(EvalScript, ABC):
         # Create the data module
         datamodule = self.create_datamodule()
 
+        datamodule.prepare_data = lambda *_, **__: None
+        datamodule.setup = lambda *_, **__: None
+
         # Create the architecture
         arch = self.create_architecture(datamodule)
-
-        # Create the trainer
-        trainer = self.create_trainer([])
 
         # Read Storm Classification Json
         with open('stats/STORM_CLASSIFICATION.json', 'r') as f:
@@ -70,11 +63,17 @@ class EvalStormClassificationScript(EvalScript, ABC):
 
             datamodule.train_dataset.set_index_files(train_storm_indices)
             datamodule.val_dataset.set_index_files(val_storm_indices)
+            datamodule.train_index_files = train_storm_indices
+            datamodule.val_index_files = val_storm_indices
+
+            # Create the trainer
+            trainer = self.create_trainer([])
 
             # Run the evaluation
             metric_dict_lst = trainer.test(model=arch, datamodule=datamodule,
                                            ckpt_path=self._get_model_checkpoint(),
                                            verbose=True)
+
             metric_dict = metric_dict_lst[0]
 
             metric_value = metric_dict[metric_name]
@@ -84,7 +83,7 @@ class EvalStormClassificationScript(EvalScript, ABC):
 
             eval_dict['storm_classification_type'].append(clf_type)
             eval_dict[metric_name].append(metric_value)
-            eval_dict[f'denormalized_{metric_name}'].append(denormalized_metric)
+            eval_dict[f'denormalized_{metric_name}'].append(denormalized_metric.item())
             eval_dict['num_storms'].append(len(val_storm_indices))
 
             # print partial results
