@@ -81,6 +81,11 @@ class CNNModule(pl.LightningModule):
 
         loss = nn.functional.mse_loss(y_hat, y)
         mae = nn.functional.l1_loss(y_hat, y)
+
+        # check if the loss is nan or inf or -inf or num of elements is 0
+        if torch.isnan(loss) or torch.isinf(loss) or loss.numel() == 0:
+            return None
+
         self.log(f'{step_name}_loss', loss, sync_dist=True)
         self.log(f'{step_name}_mae', mae, prog_bar=True, sync_dist=True)
         return loss
