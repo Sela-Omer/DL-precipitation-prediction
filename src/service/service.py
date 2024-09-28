@@ -7,7 +7,10 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from src.helper.param_helper import convert_param_to_type, convert_param_to_list
 from src.transform.circular_unfold_tfm import CircularUnfoldTfm
 from src.transform.correct_intensity_tfm import CorrectIntensityTfm
+from src.transform.crop_time_tfm import CropTimeTfm
+from src.transform.delta_suffix_tfm import DeltaSuffixTfm
 from src.transform.norm_tfm import NormalizeTfm
+from src.transform.roll_time_suffix_tfm import RollTimeSuffixTfm
 from src.transform.sum_tfm import SumTfm
 
 
@@ -32,6 +35,7 @@ class Service(ABC):
         self.norm_parameters = convert_param_to_list(self.config['DATA']['NORM_PARAMETERS'])
         self.target_parameters = convert_param_to_list(self.config['DATA']['TARGET_PARAMETERS'])
         self.input_parameters = convert_param_to_list(self.config['DATA']['INPUT_PARAMETERS'])
+        self.fix_times_mismatch_in_data = convert_param_to_type(self.config['DATA']['FIX_TIMES_MISMATCH_IN_DATA'])
 
         if len(self.target_parameters) > 0 and self.target_parameters[-1] == '':
             self.target_parameters = self.target_parameters[:-1]
@@ -55,7 +59,10 @@ class Service(ABC):
                    CorrectIntensityTfm(self),
                    CircularUnfoldTfm(self, 'date', 1, 366),
                    CircularUnfoldTfm(self, 'lon', 0, 360),
-                   SumTfm(self, 'tp')]
+                   SumTfm(self, 'tp'),
+                   RollTimeSuffixTfm(self, -1, '-6h'),
+                   CropTimeTfm(self, 0, -1),
+                   DeltaSuffixTfm(self, '-6h')]
         for tfm in tfm_lst:
             assert isinstance(tfm, Callable), f"Transform {tfm} is not callable."
             assert hasattr(tfm, 'tfm_name'), f"Transform {tfm} does not have a tfm_name attribute."
