@@ -72,6 +72,7 @@ class MeteorologicalDataset(ABC, Dataset):
                                 file_path = os.path.join(self.data_dir, param, year, filename)
 
                             if not os.path.exists(file_path):
+                                print(f"File {file_path} does not exist.", param, param_parts)
                                 all_params_exist = False
                                 dropped_files_stats[param] += 1
 
@@ -135,6 +136,13 @@ class MeteorologicalDataset(ABC, Dataset):
 
             data = np.load(file_path)
             data_list.append(data)
+
+        if self.service.fix_times_mismatch_in_data:
+            times_list = [data.shape[0] for data in data_list]
+            min_times = min(times_list)
+            max_times = max(times_list)
+            if min_times < max_times:
+                data_list = [data[:min_times] for data in data_list]
         return data_list
 
     def set_index_files(self, index_files):
