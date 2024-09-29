@@ -9,6 +9,7 @@ from src.transform.circular_unfold_tfm import CircularUnfoldTfm
 from src.transform.correct_intensity_tfm import CorrectIntensityTfm
 from src.transform.crop_time_tfm import CropTimeTfm
 from src.transform.delta_suffix_tfm import DeltaSuffixTfm
+from src.transform.filter_nan_tfm import FilterNanTfm
 from src.transform.norm_tfm import NormalizeTfm
 from src.transform.roll_time_suffix_tfm import RollTimeSuffixTfm
 from src.transform.sum_tfm import SumTfm
@@ -62,7 +63,8 @@ class Service(ABC):
                    SumTfm(self, 'tp'),
                    RollTimeSuffixTfm(self, -1, '-6h'),
                    CropTimeTfm(self, 0, -1),
-                   DeltaSuffixTfm(self, '-6h')]
+                   DeltaSuffixTfm(self, '-6h'),
+                   FilterNanTfm(self)]
         for tfm in tfm_lst:
             assert isinstance(tfm, Callable), f"Transform {tfm} is not callable."
             assert hasattr(tfm, 'tfm_name'), f"Transform {tfm} does not have a tfm_name attribute."
