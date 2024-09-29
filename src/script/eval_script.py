@@ -142,7 +142,7 @@ class EvalScript(Script, ABC):
         colors = ['blue' if diff > 0 else 'red' for diff in diff_values]
 
         # Creating the horizontal bar chart
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(10, 10))
         bars = plt.barh(parameters, diff_values, color=colors)
         plt.xlabel('Difference from Baseline')
         plt.ylabel('Parameters')

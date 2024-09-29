@@ -1,6 +1,7 @@
 from typing import Any
 
 import lightning as pl
+import numpy as np
 import torch
 from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn
@@ -68,6 +69,12 @@ class CNNModule(pl.LightningModule):
         :return: The loss for the batch.
         """
         X, y = batch
+        # i = np.random.randint(0, 1000)
+
+        # # check is X has nan or inf or -inf
+        # if torch.isnan(X).any() or torch.isinf(X).any():
+        #     print(f'X {i} has nan or inf or -inf values.')
+
 
         X = torch.index_select(X, 1, torch.tensor(self.input_parameter_indices).to(X.device))
         y = torch.index_select(y, 1, torch.tensor(self.target_parameter_indices).to(y.device))
@@ -82,9 +89,12 @@ class CNNModule(pl.LightningModule):
         loss = nn.functional.mse_loss(y_hat, y)
         mae = nn.functional.l1_loss(y_hat, y)
 
-        # check if the loss is nan or inf or -inf or num of elements is 0
-        if torch.isnan(loss) or torch.isinf(loss) or loss.numel() == 0:
-            return None
+        # # check if the loss is nan or inf or -inf or num of elements is 0
+        # if torch.isnan(loss) or torch.isinf(loss) or loss.numel() == 0:
+        #     print(f'Loss {i} is {loss}.')
+        #     # self.log(f'{step_name}_loss', 0, sync_dist=True)
+        #     # self.log(f'{step_name}_mae', 0, prog_bar=True, sync_dist=True)
+        #     return None
 
         self.log(f'{step_name}_loss', loss, sync_dist=True)
         self.log(f'{step_name}_mae', mae, prog_bar=True, sync_dist=True)
