@@ -27,6 +27,7 @@ class NaiveModule(pl.LightningModule):
         assert len(service.target_parameters) == 1, "The NaiveModule only supports one target parameter."
         self.target_parameter = service.target_parameters[0]
         self.target_parameter_index = service.get_parameter_index(self.target_parameter)
+        self.dummy_param = torch.nn.Parameter(torch.zeros(1))
 
     def forward(self, x) -> Any:
         x = x[:, self.target_parameter_index]
