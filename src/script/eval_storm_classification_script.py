@@ -83,7 +83,7 @@ class EvalStormClassificationScript(EvalScript, ABC):
 
             eval_dict['storm_classification_type'].append(clf_type)
             eval_dict[metric_name].append(metric_value)
-            eval_dict[f'denormalized_{metric_name}'].append(denormalized_metric.item())
+            eval_dict[f'denormalized_{metric_name}'].append(denormalized_metric.item() if denormalized_metric is not None else -999)
             eval_dict['num_storms'].append(len(val_storm_indices))
 
             # print partial results
