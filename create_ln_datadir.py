@@ -15,10 +15,10 @@ def symlink_all_with_priority(dir1, dir2, params1, params2, new_dir):
             # create symlink to low res
             os.symlink(os.path.join(dir1, param), os.path.join(new_dir, param))
 
-dir1 = '/home/mansour/ML3300-24a/omersela3/fixed_tensors-v2/fixed_tensors-v2'
-dir2 = '/home/mansour/ML3300-24a/omersela3/before_6h_no_suffix'
+dir1 = '/home/mansour/ML3300-24a/omersela3/OrTensors'
+dir2 = '/home/mansour/ML3300-24a/omersela3/OrTensors/6h_before_1.25'
 
-new_dir = '/home/mansour/ML3300-24a/omersela3/tensors_0h_6h-v2'
+new_dir = '/home/mansour/ML3300-24a/omersela3/tensors-v3/w_6h_before_1.25'
 os.makedirs(new_dir, exist_ok=True)
 
 params1 = set(os.listdir(dir1))

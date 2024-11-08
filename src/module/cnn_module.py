@@ -44,11 +44,13 @@ class CNNModule(pl.LightningModule):
         pool_layer_dict = {'AVG_POOL': nn.AvgPool2d, 'MAX_POOL': nn.MaxPool2d, }
         pool_layer = pool_layer_dict[service.config['APP']['POOL_LAYER']]
 
-        lin_ch_mult = convert_param_to_type(self.service.config['APP']['LIN_CH_MULT']) if 'LIN_CH_MULT' in self.service.config['APP'] else 2
+        lin_ch_mult = convert_param_to_type(self.service.config['APP']['LIN_CH_MULT']) if 'LIN_CH_MULT' in \
+                                                                                          self.service.config[
+                                                                                              'APP'] else 2
 
         num_classes = len(self.target_parameters) if override_last_lin_planes is None else override_last_lin_planes
-        self.cnn = DynamicCNN(norm_layer, pool_layer, in_channels, num_classes, service.network_depth, lin_ch_mult=lin_ch_mult)
-
+        self.cnn = DynamicCNN(norm_layer, pool_layer, in_channels, num_classes, service.network_depth,
+                              lin_ch_mult=lin_ch_mult)
 
     def forward(self, x) -> Any:
         """
@@ -75,7 +77,6 @@ class CNNModule(pl.LightningModule):
         # if torch.isnan(X).any() or torch.isinf(X).any():
         #     print(f'X {i} has nan or inf or -inf values.')
 
-
         X = torch.index_select(X, 1, torch.tensor(self.input_parameter_indices).to(X.device))
         y = torch.index_select(y, 1, torch.tensor(self.target_parameter_indices).to(y.device))
 
@@ -98,6 +99,14 @@ class CNNModule(pl.LightningModule):
 
         self.log(f'{step_name}_loss', loss, sync_dist=True)
         self.log(f'{step_name}_mae', mae, prog_bar=True, sync_dist=True)
+
+        if len(self.target_parameters) > 1:
+            for i, param in enumerate(self.target_parameters):
+                yi = y[:, i]
+                yi_hat = y_hat[:, i]
+                mae_i = nn.functional.l1_loss(yi_hat, yi)
+                self.log(f'{step_name}_mae_{param}', mae_i, prog_bar=True, sync_dist=True)
+
         return loss
 
     def training_step(self, batch) -> STEP_OUTPUT:
