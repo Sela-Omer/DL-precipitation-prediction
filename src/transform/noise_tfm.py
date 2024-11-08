@@ -21,7 +21,10 @@ class NoiseTfm(Callable):
         :param x: The input data.
         :return: data with added noise.
         """
-        x[self.noise_param_index] = x[self.noise_param_index] + torch.normal(self.noise_mean, self.noise_std,
-                                                                             size=x[self.noise_param_index].shape).to(
-            device=x.device)
+        # PARAMS x TIMES x HEIGHT x WIDTH
+        noise = torch.normal(self.noise_mean, self.noise_std,
+                             size=[1 for _ in x[self.noise_param_index].shape]).to(device=x.device)
+        noise = noise.repeat(*x[self.noise_param_index].shape)
+
+        x[self.noise_param_index] = x[self.noise_param_index] + noise
         return x
