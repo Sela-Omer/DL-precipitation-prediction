@@ -3,6 +3,7 @@ from abc import ABC
 
 import pandas as pd
 
+from src.helper.param_helper import convert_param_to_list
 from src.script.eval_script import EvalScript
 
 
@@ -38,13 +39,20 @@ class EvalStormClassificationScript(EvalScript, ABC):
         all_train_indices = set(datamodule.train_index_files)
         all_val_indices = set(datamodule.val_index_files)
 
-        metric_name = self.service.config['EVAL']['METRIC']
-        eval_dict = {'storm_classification_type': [], metric_name: [], f'denormalized_{metric_name}': [],
-                     'num_storms': []}
+        metric_names = convert_param_to_list(self.service.config['EVAL']['STORM_CLASSIFICATION_METRICS'])
+        eval_dict = {'storm_classification_type': [], 'num_storms': [], 'num_samples': []}
+        for metric_name in metric_names:
+            eval_dict[metric_name] = []
+            eval_dict[f'denormalized_{metric_name}'] = []
 
         for clf_type in storm_clf_types:
             # Get all the storm indices for the current classification type
-            storm_indices = set([key for key, value in storm_classification_dict.items() if clf_type in value])
+            storm_indices = [key for key, value in storm_classification_dict.items() if clf_type in value]
+            storm_indices_set = set(storm_indices)
+            # Get number of appearances of the current classification type in each storm index
+            num_samples = []
+            for storm_index in storm_indices:
+                num_samples.append(storm_classification_dict[storm_index].count(clf_type))
 
             # Set storm indices for the datamodule
             assert hasattr(datamodule, 'train_dataset'), 'The datamodule must have a train_dataset attribute'
@@ -55,8 +63,14 @@ class EvalStormClassificationScript(EvalScript, ABC):
                            'set_index_files'), 'The val dataset must have a set_index_files method'
 
             # intersect the storm indices with the train and val indices
-            train_storm_indices = list(all_train_indices.intersection(storm_indices))
-            val_storm_indices = list(all_val_indices.intersection(storm_indices))
+            train_storm_indices = list(all_train_indices.intersection(storm_indices_set))
+            val_storm_indices = list(all_val_indices.intersection(storm_indices_set))
+
+            # replicate the storm indices according to the number of samples
+            train_storm_indices = [index for index in train_storm_indices for _ in
+                                   range(num_samples[storm_indices.index(index)])]
+            val_storm_indices = [index for index in val_storm_indices for _ in
+                                 range(num_samples[storm_indices.index(index)])]
 
             if len(val_storm_indices) == 0:
                 continue
@@ -76,15 +90,19 @@ class EvalStormClassificationScript(EvalScript, ABC):
 
             metric_dict = metric_dict_lst[0]
 
-            metric_value = metric_dict[metric_name]
+            for metric_name in metric_names:
+                metric_value = metric_dict[metric_name]
 
-            # attempt to denormalize the metric
-            denormalized_metric = self._denormalize_metric(metric_value)
+                # attempt to denormalize the metric
+                denormalized_metric = self._denormalize_metric(metric_value)
+
+                eval_dict[metric_name].append(metric_value)
+                eval_dict[f'denormalized_{metric_name}'].append(
+                    denormalized_metric.item() if denormalized_metric is not None else -999)
 
             eval_dict['storm_classification_type'].append(clf_type)
-            eval_dict[metric_name].append(metric_value)
-            eval_dict[f'denormalized_{metric_name}'].append(denormalized_metric.item() if denormalized_metric is not None else -999)
-            eval_dict['num_storms'].append(len(val_storm_indices))
+            eval_dict['num_storms'].append(len(all_val_indices.intersection(storm_indices_set)))
+            eval_dict['num_samples'].append(sum(num_samples))
 
             # print partial results
             print(pd.DataFrame(eval_dict))
@@ -96,5 +114,5 @@ class EvalStormClassificationScript(EvalScript, ABC):
         print(eval_df)
 
         # Save the evaluation results
-        f = self._get_model_checkpoint().replace('.ckpt', f'-eval_storm_classification-{metric_name}.csv')
+        f = self._get_model_checkpoint().replace('.ckpt', f'-eval_storm_classification-{metric_names}.csv')
         eval_df.to_csv(f)

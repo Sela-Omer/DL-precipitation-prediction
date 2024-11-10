@@ -7,6 +7,7 @@ from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn
 
 from src.helper.param_helper import convert_param_to_type
+from src.metric.mae_ci import MAEWithConfidenceInterval
 from src.module.dropout_norm import DropoutNorm
 from src.module.dynamic_cnn import DynamicCNN
 from src.module.empty_norm import EmptyNorm
@@ -25,6 +26,8 @@ class CNNModule(pl.LightningModule):
         self.example_input_array = example_input_array
         self.service = service
         self.lr = lr
+
+        self.mae_with_ci = MAEWithConfidenceInterval()
 
         self.lookback_range = service.lookback_range
         self.forecast_range = service.forecast_range
@@ -97,6 +100,7 @@ class CNNModule(pl.LightningModule):
         #     # self.log(f'{step_name}_mae', 0, prog_bar=True, sync_dist=True)
         #     return None
 
+        self.mae_with_ci.update(y_hat, y)
         self.log(f'{step_name}_loss', loss, sync_dist=True)
         self.log(f'{step_name}_mae', mae, prog_bar=True, sync_dist=True)
 
@@ -108,6 +112,21 @@ class CNNModule(pl.LightningModule):
                 self.log(f'{step_name}_mae_{param}', mae_i, prog_bar=True, sync_dist=True)
 
         return loss
+
+    def _generic_epoch_end(self, epoch_name: str):
+        mae_ci_dict = self.mae_with_ci.compute()
+        for name, value in mae_ci_dict.items():
+            self.log(f'{epoch_name}_{name}', value, sync_dist=True)
+        self.mae_with_ci.reset()
+
+    # def training_epoch_end(self, outputs) -> None:
+    #     self._generic_epoch_end(outputs, 'train')
+
+    # def validation_epoch_end(self, outputs) -> None:
+    #     self._generic_epoch_end(outputs, 'val')
+
+    def on_test_epoch_end(self) -> None:
+        self._generic_epoch_end('test')
 
     def training_step(self, batch) -> STEP_OUTPUT:
         """
