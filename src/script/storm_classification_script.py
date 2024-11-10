@@ -1,20 +1,12 @@
 import json
-import time
 from abc import ABC
-from collections import Counter
 
-import numpy as np
-from geopy.exc import GeocoderTimedOut
-from geopy.geocoders import Nominatim
-from matplotlib import pyplot as plt
+import xarray as xr
 
 from src.dataset.cnn_meteorological_dataset import CNN_MeteorologicalDataset
-from src.enum.biome_type import BiomeType
-from src.enum.storm_type import StormType
 from src.object.geo_rect import GeoRect
 from src.object.geo_xr import GeoXr
 from src.script.script import Script
-import xarray as xr
 
 
 class StormClassificationScript(Script, ABC):
@@ -52,10 +44,32 @@ class StormClassificationScript(Script, ABC):
         :return: A list of geos that the cyclone is in.
         """
         # Extract relevant parameters
-        lat = cyclone_data[self.service.get_parameter_index('lat')].mean()  # Latitude
-        lon = cyclone_data[self.service.get_parameter_index('lon')].mean()  # Longitude
+        lat_tensor = cyclone_data[self.service.get_parameter_index('lat')]  # Latitude
+        lon_tensor = cyclone_data[self.service.get_parameter_index('lon')]  # Longitude
 
-        return [geo for geo in self.geos if geo.is_in(lon, lat)]
+        if len(lat_tensor.shape) == 3 and len(lon_tensor.shape) == 3:
+            # TIMES x HEIGHT x WIDTH
+            _, HEIGHT, WIDTH = lat_tensor.shape
+            lat_tensor = lat_tensor[:, HEIGHT // 2, WIDTH // 2]
+            lon_tensor = lon_tensor[:, HEIGHT // 2, WIDTH // 2]
+        elif len(lat_tensor.shape) == 1 and len(lon_tensor.shape) == 1:
+            # TIMES
+            pass
+        else:
+            raise NotImplementedError(f'lat_tensor.shape: {lat_tensor.shape}, lon_tensor.shape: {lon_tensor.shape}')
+
+        assert len(lat_tensor.shape) == 1 and len(lon_tensor.shape) == 1, "lat_tensor and lon_tensor must be 1D tensors"
+        assert lat_tensor.shape[0] == lon_tensor.shape[0], "time dimension mismatch"
+
+        geos = []
+        for t in range(len(lat_tensor)):
+            lat = lat_tensor[t].item()
+            lon = lon_tensor[t].item()
+            for geo in self.geos:
+                if geo.is_in(lon, lat):
+                    geos.append(geo)
+
+        return geos
 
     def __call__(self):
         """
@@ -76,4 +90,3 @@ class StormClassificationScript(Script, ABC):
 
         with open('stats/STORM_CLASSIFICATION.json', 'w') as f:
             json.dump(storm_clf_dict, f)
-
