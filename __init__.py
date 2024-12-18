@@ -6,6 +6,7 @@ from src.config.config import config
 from src.helper.param_helper import convert_param_to_list
 from src.service.service_data_analysis import ServiceDataAnalysis
 from src.service.service_eval import ServiceEval
+from src.service.service_eval_predict import ServiceEvalPredict
 from src.service.service_eval_storm_classification import ServiceEvalStormClassification
 from src.service.service_executable import ServiceExecutable
 from src.service.service_fit import ServiceFit
@@ -96,6 +97,7 @@ if __name__ == "__main__":
         "DATA_ANALYSIS": ServiceDataAnalysis,
         "EXEC": ServiceExecutable,
         "EVAL_STORM_CLASSIFICATION": ServiceEvalStormClassification,
+        "EVAL_PREDICT": ServiceEvalPredict,
     }
     for app_mode in app_mode_lst:
         # Create the service object
