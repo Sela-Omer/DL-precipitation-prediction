@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Tuple
 
 import lightning as pl
 import numpy as np
@@ -55,6 +55,25 @@ class CNNModule(pl.LightningModule):
         self.cnn = DynamicCNN(norm_layer, pool_layer, in_channels, num_classes, service.network_depth,
                               lin_ch_mult=lin_ch_mult)
 
+    def forward_passthrough(self, X, y) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Forward pass of the model.
+
+        :param X:
+        :param y:
+        :return:
+        """
+        X = torch.index_select(X, 1, torch.tensor(self.input_parameter_indices).to(X.device))
+        y = torch.index_select(y, 1, torch.tensor(self.target_parameter_indices).to(y.device))
+
+        X = X.reshape(X.shape[0], X.shape[1] * X.shape[2], X.shape[3], X.shape[4])
+        y = y.reshape(y.shape[0], y.shape[1] * y.shape[2], y.shape[3], y.shape[4])
+
+        y = y[..., y.shape[-2] // 2, y.shape[-1] // 2]
+
+        y_hat = self.cnn(X)
+        return y_hat, y
+
     def forward(self, x) -> Any:
         """
         Forward pass of the model.
@@ -74,21 +93,8 @@ class CNNModule(pl.LightningModule):
         :return: The loss for the batch.
         """
         X, y = batch
-        # i = np.random.randint(0, 1000)
 
-        # # check is X has nan or inf or -inf
-        # if torch.isnan(X).any() or torch.isinf(X).any():
-        #     print(f'X {i} has nan or inf or -inf values.')
-
-        X = torch.index_select(X, 1, torch.tensor(self.input_parameter_indices).to(X.device))
-        y = torch.index_select(y, 1, torch.tensor(self.target_parameter_indices).to(y.device))
-
-        X = X.reshape(X.shape[0], X.shape[1] * X.shape[2], X.shape[3], X.shape[4])
-        y = y.reshape(y.shape[0], y.shape[1] * y.shape[2], y.shape[3], y.shape[4])
-
-        y = y[..., y.shape[-2] // 2, y.shape[-1] // 2]
-
-        y_hat = self.cnn(X)
+        y_hat, y = self.forward_passthrough(X, y)
 
         loss = nn.functional.mse_loss(y_hat, y)
         mae = nn.functional.l1_loss(y_hat, y)

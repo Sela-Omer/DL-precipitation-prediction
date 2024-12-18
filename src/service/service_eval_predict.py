@@ -1,11 +1,10 @@
 from typing import Callable, Dict
 
-from src.script.eval_storm_classification_skip_connection_cnn_script import \
-    EvalStormClassificationSkipConnectionCNNScript
+from src.script.eval_predict_skip_connection_cnn_script import EvalPredictSkipConnectionCNNScript
 from src.service.service import Service
 
 
-class ServiceEvalStormClassification(Service):
+class ServiceEvalPredict(Service):
     @property
     def scripts(self) -> Dict[str, Callable]:
         """
@@ -16,7 +15,7 @@ class ServiceEvalStormClassification(Service):
         """
         # Create a dictionary with the ARCH name and its corresponding instance
         script_dict = {
-            'CNN_SKIP_CONNECTION': EvalStormClassificationSkipConnectionCNNScript(self),
+            'CNN_SKIP_CONNECTION': EvalPredictSkipConnectionCNNScript(self),
         }
 
         return script_dict
