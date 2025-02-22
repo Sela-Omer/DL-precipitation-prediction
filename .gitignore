@@ -1,6 +1,6 @@
 mock_data/
 cache/
-model/**.pt
+model/*.pt
 *.ckpt
 *.ckpt.*
 *events.out.tfevents.*
