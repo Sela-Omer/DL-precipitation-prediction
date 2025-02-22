@@ -78,6 +78,16 @@ class Service(ABC):
         tfm_dict = {tfm.tfm_name: tfm for tfm in tfm_lst}
         self.tfms = [tfm_dict[tfm_name] for tfm_name in self.apply_tfms]
 
+    def get_config_params(self, section: str, parameter: str, default=None):
+        """
+        Get the configuration parameters.
+        :param section: The section of the configuration file.
+        :param parameter: The parameter to get.
+        :param default: The default value to return if the parameter is not found.
+        :return: The value of the parameter.
+        """
+        return self.config.get(section, parameter, fallback=default)
+
     def add_tfm(self, tfm: Callable):
         """
         Adds a transform to the service.
